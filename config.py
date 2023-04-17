@@ -48,6 +48,7 @@ def restore_context() -> Dict[str, list | tuple]:
         with open(current_file_path + '/cached_data/last_session.json') as latest_context:
             previous_context = json.load(latest_context)
     except json.decoder.JSONDecodeError:
+        # invalid last_session.json content
         latest_context = open(current_file_path + '/cached_data/last_session.json', 'w')
         latest_context.truncate(0)
         latest_context.write("{}")
@@ -73,3 +74,5 @@ def add_missing_fields(complemented_context: Dict[str, list | tuple]) -> None:
 
 context = restore_context()       # execute when importing
 add_missing_fields(context)
+
+sessions = []
