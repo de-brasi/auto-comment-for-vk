@@ -1,5 +1,6 @@
 # todo: photos - list of str urls or pair(photo_id, owner_id)?
 # todo: extend with settings field (window size, enabled Captcha reader, etc.)
+# todo: возможно стоит разделить код функций и саму структуру данных конфига
 """
 Context description:
 - "vk_users" - list of tuples (login and password) for every saved user
@@ -8,10 +9,18 @@ Context description:
 """
 
 from typing import Dict
+from collections import namedtuple
 
 import pathlib
 import json
 import csv
+
+Description = namedtuple("Description", ["field", "default_value"])
+CONTEXT_DESCRIPTION = [
+    Description("vk_users", []),
+    Description("photos", []),
+    Description("start_time", (0, 0, 0)),
+]
 
 LOGIN = 0
 PASSWORD = 1
@@ -21,7 +30,7 @@ current_file_path = str(pathlib.Path(__file__).parent)
 
 def restore_context() -> Dict[str, list | tuple]:
     """
-    draft
+    Restores context from last session information
     """
     def not_contained_accounts(_context: Dict[str, list | tuple]):
         return (not _context) or ("vk_users" not in _context) or (not _context["vk_users"])
@@ -53,4 +62,14 @@ def restore_context() -> Dict[str, list | tuple]:
     return previous_context
 
 
+def add_missing_fields(complemented_context: Dict[str, list | tuple]) -> None:
+    """
+    Creates missing context fields and fills them with default values
+    """
+    for description in CONTEXT_DESCRIPTION:
+        if description.field not in complemented_context:
+            complemented_context[description.field] = description.default_value
+
+
 context = restore_context()       # execute when importing
+add_missing_fields(context)
