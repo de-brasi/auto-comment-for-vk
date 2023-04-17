@@ -19,7 +19,7 @@ PASSWORD = 1
 current_file_path = str(pathlib.Path(__file__).parent)
 
 
-def restore_context():
+def restore_context() -> Dict[str, list | tuple]:
     """
     draft
     """
@@ -50,7 +50,6 @@ def restore_context():
         previous_context["vk_users"] = []
         restore_accounts(previous_context)
 
-    print(previous_context)
     return previous_context
 
 

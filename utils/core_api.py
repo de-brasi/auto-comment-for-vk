@@ -23,3 +23,7 @@ def set_default_time():
 
 def get_stored_time():
     pass
+
+
+# TODO: для определения момента комментирования использовать ВК Longpool
+# TODO: для одновременных запросов использовать VkRequestsPool
