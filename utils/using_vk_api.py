@@ -1,7 +1,6 @@
 import vk_api
 import re
 import time
-import datetime
 from datetime import datetime
 
 from collections import namedtuple
@@ -66,6 +65,13 @@ def start_with_delay(session: vk_api.VkApi, queries_arguments: List[str], time_t
                                                 'photo_id': photo_id,
                                                 'message': msg})
 
+    def get_time_to_start(h: int, m: int, s: int) -> float:
+        # TODO: учитывать если время старта - следующий день
+        now_time = datetime.now()
+        start_time = datetime(year=now_time.year, month=now_time.month, day=now_time.day, hour=h, minute=m, second=s)
+        diff = start_time - now_time
+        return max(diff.total_seconds(), 0)
+
     parsed_photo = [parse_photo(url) for url in queries_arguments]
 
     hour = 0
@@ -74,12 +80,8 @@ def start_with_delay(session: vk_api.VkApi, queries_arguments: List[str], time_t
 
     # TODO: пока наивная реализация, посмотреть использование модуля longpool и VkRequestsPool
     message = "example"                                         # todo: choice and random
-    preparation_time_in_seconds = 1
-    time_to_start_in_seconds = datetime.time(
-            time_to_start[hour], time_to_start[minute], time_to_start[second]
-        ).second
-    delay_in_seconds = max(time_to_start_in_seconds - datetime.now().second - preparation_time_in_seconds, 0)
-    time.sleep(delay_in_seconds)
+    time_to_start_in_seconds = get_time_to_start(time_to_start[hour], time_to_start[minute], time_to_start[second])
+    time.sleep(time_to_start_in_seconds)
 
     while True:
         if can_be_commented(parsed_photo[0]):
@@ -91,3 +93,4 @@ def start_with_delay(session: vk_api.VkApi, queries_arguments: List[str], time_t
             #       Тут, вероятно, пригодится asyncio
             for photo_info in parsed_photo:
                 create_comment(photo_info.owner, photo_info.photo, message)
+            break
