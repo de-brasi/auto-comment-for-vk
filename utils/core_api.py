@@ -18,10 +18,10 @@ def add_photo(photo_url: str) -> None:
     #  либо на тяжелые работы с коллекциями
     #  (слайсинг листа при удалении, линейный поиск и тд)
 
-    # TODO: валидация URL, либо отлов исключений от ВК
-    #  при попытке взаимодействовать с невалидной фоткой/записью
-
-    config.context[config.CONTEXT_FIELD_PHOTOS].append(photo_url)
+    if photo_url not in config.context[config.CONTEXT_FIELD_PHOTOS]:
+        # todo: подумать над использованием более оптимального
+        #       с точки зрения асимптотики алгоритма
+        config.context[config.CONTEXT_FIELD_PHOTOS].append(photo_url)
 
 
 def delete_photo(to_delete_photo_url: str) -> None:
@@ -53,7 +53,7 @@ def set_time(hour: int = 0, minute: int = 0, second: int = 0) -> None:
     assert 0 <= hour <= 23
     assert 0 <= minute <= 59
     assert 0 <= second <= 59
-    config.context[config.CONTEXT_FIELD_START_TIME] = (hour, minute, second)
+    config.context[config.CONTEXT_FIELD_START_TIME] = [hour, minute, second]
 
 
 def set_default_time() -> None:
