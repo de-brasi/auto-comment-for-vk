@@ -65,7 +65,7 @@ def get_stored_time():
 
 
 def add_vk_user(login: str, password: str) -> None:
-    if (login, password) not in config.context[config.CONTEXT_FIELD_VK_USERS]:
+    if [login, password] not in config.context[config.CONTEXT_FIELD_VK_USERS]:
         # todo: подумать над использованием более оптимального
         #       с точки зрения асимптотики алгоритма
         config.context[config.CONTEXT_FIELD_VK_USERS].append((login, password))
