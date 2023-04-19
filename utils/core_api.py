@@ -21,7 +21,7 @@ def add_photo(photo_url: str) -> None:
     # TODO: валидация URL, либо отлов исключений от ВК
     #  при попытке взаимодействовать с невалидной фоткой/записью
 
-    config.context["photos"].append(photo_url)
+    config.context[config.CONTEXT_FIELD_PHOTOS].append(photo_url)
 
 
 def delete_photo(to_delete_photo_url: str) -> None:
@@ -35,15 +35,15 @@ def delete_photo(to_delete_photo_url: str) -> None:
     #  (слайсинг листа при удалении, линейный поиск и тд)
 
     after_deleting = []
-    for photo in config.context["photos"]:
+    for photo in config.context[config.CONTEXT_FIELD_PHOTOS]:
         # пока наивное решение - линейный поиск + копирование
         if photo != to_delete_photo_url:
             after_deleting.append(photo)
-    config.context["photos"] = after_deleting
+    config.context[config.CONTEXT_FIELD_PHOTOS] = after_deleting
 
 
 def get_added_photos(with_copy: bool = False) -> List[str]:
-    res = config.context["photos"]
+    res = config.context[config.CONTEXT_FIELD_PHOTOS]
     if with_copy:
         res = res.copy()
     return res
@@ -53,7 +53,7 @@ def set_time(hour: int = 0, minute: int = 0, second: int = 0) -> None:
     assert 0 <= hour <= 23
     assert 0 <= minute <= 59
     assert 0 <= second <= 59
-    config.context["start_time"] = (hour, minute, second)
+    config.context[config.CONTEXT_FIELD_START_TIME] = (hour, minute, second)
 
 
 def set_default_time() -> None:
@@ -61,7 +61,7 @@ def set_default_time() -> None:
 
 
 def get_stored_time():
-    return config.context["start_time"]
+    return config.context[config.CONTEXT_FIELD_START_TIME]
 
 
 def add_vk_user(login: str, password: str) -> None:
@@ -69,7 +69,7 @@ def add_vk_user(login: str, password: str) -> None:
     #  нужно выгрузить всех сохраненных пользователей из account.csv
     #  в какой нибудь питонячий тип данных, и по этой инфе определять,
     #  был ли такой логин и пароль
-    config.context["vk_users"].append((login, password))
+    config.context[config.CONTEXT_FIELD_VK_USERS].append((login, password))
 
 
 def delete_vk_user():
@@ -119,9 +119,9 @@ def main_script_start() -> None:
     # todo: проверять при запуске, если нет - акков сигналить пользователю
     assert len(config.sessions) > 0
     cur_session = config.sessions[0]
-    cur_photos = config.context["photos"]
+    cur_photos = config.context[config.CONTEXT_FIELD_PHOTOS]
     try:
-        using_vk_api.start_with_delay(cur_session, cur_photos, config.context["time"])
+        using_vk_api.start_with_delay(cur_session, cur_photos, config.context[config.CONTEXT_FIELD_START_TIME])
     except vk_api.exceptions.Captcha as captcha_ex:
         captcha_handler(captcha_ex)
 
