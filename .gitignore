@@ -164,3 +164,6 @@ vk_config.v2.json
 
 # Test file
 test.py
+
+# Personal data
+cached_data/*
