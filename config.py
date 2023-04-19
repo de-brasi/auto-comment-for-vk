@@ -79,6 +79,9 @@ def add_missing_fields(complemented_context: Dict[str, list | tuple]) -> None:
             complemented_context[description.field] = description.default_value
 
 
+# todo: добавить аккаунты из accounts.csv. А надо ли это делать, если сохраняется контекст прошлого запуска?
+
+
 context = restore_context()       # execute when importing
 add_missing_fields(context)
 
