@@ -27,7 +27,7 @@ CONTEXT_FIELD_START_TIME = "start_time"
 
 CONTEXT_DESCRIPTION = [
     Description(CONTEXT_FIELD_VK_USERS, []),
-    Description(CONTEXT_FIELD_VK_USERS, []),
+    Description(CONTEXT_FIELD_PHOTOS, []),
     Description(CONTEXT_FIELD_START_TIME, (0, 0, 0)),
 ]
 
