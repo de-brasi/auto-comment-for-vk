@@ -1,6 +1,11 @@
 from typing import List
 
 import json
+import sys
+import pathlib
+
+parents_path = str(pathlib.Path(__file__).parent)
+sys.path.append(parents_path)
 
 import config
 import using_vk_api
@@ -43,7 +48,7 @@ def get_added_photos(with_copy: bool = False) -> List[str]:
     return res
 
 
-def add_time(hour: int = 0, minute: int = 0, second: int = 0) -> None:
+def set_time(hour: int = 0, minute: int = 0, second: int = 0) -> None:
     assert 0 <= hour <= 23
     assert 0 <= minute <= 59
     assert 0 <= second <= 59
@@ -51,7 +56,7 @@ def add_time(hour: int = 0, minute: int = 0, second: int = 0) -> None:
 
 
 def set_default_time() -> None:
-    add_time()
+    set_time()
 
 
 def get_stored_time():
@@ -63,7 +68,7 @@ def add_vk_user(login: str, password: str) -> None:
     #  нужно выгрузить всех сохраненных пользователей из account.csv
     #  в какой нибудь питонячий тип данных, и по этой инфе определять,
     #  был ли такой логин и пароль
-    pass
+    config.context["vk_users"].append((login, password))
 
 
 def delete_vk_user():
@@ -73,7 +78,7 @@ def delete_vk_user():
 
 def main_script_start() -> None:
     def save_context():
-        with open("../cached_data/last_session.json", 'w') as cached_session:
+        with open(parents_path + "/../cached_data/last_session.json", 'w') as cached_session:
             json.dump(config.context, cached_session)
 
     # запускает выполнение программы:
@@ -87,7 +92,7 @@ def main_script_start() -> None:
     for vk_login, vk_password in config.context["vk_users"]:
         new_session = using_vk_api.create_session(vk_login, vk_password, config.APP_ID)
         # todo: процесс создания аутентификации сессии может проходить очень долго, надо как то параллелить этот процесс
-        new_session.auth()  # todo: обработать капчу(как ошибки, выдача пользователю, капча хэндлером) и ошибки
+        new_session.auth(token_only=True)  # todo: обработать капчу(как ошибки, выдача пользователю, капча хэндлером) и ошибки
         sessions.append(new_session)
     config.sessions = sessions          # TODO: можно ли копировать сессии ВК?
 
