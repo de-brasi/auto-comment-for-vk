@@ -161,3 +161,6 @@ cython_debug/
 
 # VK config
 vk_config.v2.json
+
+# Test file
+test.py
