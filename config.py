@@ -5,7 +5,7 @@
 Context description:
 - "vk_users" - list of tuples (login and password) for every saved user
 - "photos" - list of urls (type == str)
-- "time" - tuple(hour, minute, second)
+- "start_time" - tuple(hour, minute, second)
 """
 
 from typing import Dict
@@ -16,14 +16,21 @@ import json
 import csv
 
 Description = namedtuple("Description", ["field", "default_value"])
-CONTEXT_DESCRIPTION = [
-    Description("vk_users", []),
-    Description("photos", []),
-    Description("start_time", (0, 0, 0)),
-]
 
+APP_ID = 2685278
 LOGIN = 0
 PASSWORD = 1
+
+CONTEXT_FIELD_VK_USERS = "vk_users"
+CONTEXT_FIELD_PHOTOS = "photos"
+CONTEXT_FIELD_START_TIME = "start_time"
+
+CONTEXT_DESCRIPTION = [
+    Description(CONTEXT_FIELD_VK_USERS, []),
+    Description(CONTEXT_FIELD_VK_USERS, []),
+    Description(CONTEXT_FIELD_START_TIME, (0, 0, 0)),
+]
+
 # this fix problem with relative path after importing module
 current_file_path = str(pathlib.Path(__file__).parent)
 
@@ -33,14 +40,14 @@ def restore_context() -> Dict[str, list | tuple]:
     Restores context from last session information
     """
     def not_contained_accounts(_context: Dict[str, list | tuple]):
-        return (not _context) or ("vk_users" not in _context) or (not _context["vk_users"])
+        return (not _context) or (CONTEXT_FIELD_VK_USERS not in _context) or (not _context[CONTEXT_FIELD_VK_USERS])
 
     def restore_accounts(context_storage: Dict):
         with open(current_file_path + '/cached_data/accounts.csv', 'r', newline='') as saved_accounts:
             all_records = csv.reader(saved_accounts)
             for record in all_records:
                 assert len(record) == len(["login", "password"])
-                context_storage["vk_users"].append((record[LOGIN], record[PASSWORD]))
+                context_storage[CONTEXT_FIELD_VK_USERS].append((record[LOGIN], record[PASSWORD]))
 
     previous_context = dict()
     try:
@@ -57,7 +64,7 @@ def restore_context() -> Dict[str, list | tuple]:
         print("Unexpected exception: " + repr(error))
 
     if not_contained_accounts(previous_context):
-        previous_context["vk_users"] = []
+        previous_context[CONTEXT_FIELD_VK_USERS] = []
         restore_accounts(previous_context)
 
     return previous_context
@@ -76,4 +83,3 @@ context = restore_context()       # execute when importing
 add_missing_fields(context)
 
 sessions = []
-APP_ID = 2685278
