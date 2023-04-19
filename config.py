@@ -38,6 +38,9 @@ def restore_context() -> Dict[str, list]:
     """
     Restores context from last session information
     """
+    # TODO: список фоток предыдущего контекста надо возвращать
+    #  только если прошлая сессия крашнулась,
+    #  иначе вероятнее пользователь захочет ввести по новой фотки
     def not_contained_accounts(_context: Dict[str, list | tuple]):
         return (not _context) or (CONTEXT_FIELD_VK_USERS not in _context) or (not _context[CONTEXT_FIELD_VK_USERS])
 
