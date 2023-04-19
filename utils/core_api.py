@@ -85,7 +85,9 @@ def main_script_start() -> None:
     sessions = []
 
     for vk_login, vk_password in config.context["vk_users"]:
-        new_session = using_vk_api.create_session(vk_login, vk_password)
+        new_session = using_vk_api.create_session(vk_login, vk_password, config.APP_ID)
+        # todo: процесс создания аутентификации сессии может проходить очень долго, надо как то параллелить этот процесс
+        new_session.auth()  # todo: обработать капчу(как ошибки, выдача пользователю, капча хэндлером) и ошибки
         sessions.append(new_session)
     config.sessions = sessions          # TODO: можно ли копировать сессии ВК?
 
