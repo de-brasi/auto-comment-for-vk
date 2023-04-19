@@ -65,11 +65,10 @@ def get_stored_time():
 
 
 def add_vk_user(login: str, password: str) -> None:
-    # todo: при начале работы с конфигом
-    #  нужно выгрузить всех сохраненных пользователей из account.csv
-    #  в какой нибудь питонячий тип данных, и по этой инфе определять,
-    #  был ли такой логин и пароль
-    config.context[config.CONTEXT_FIELD_VK_USERS].append((login, password))
+    if (login, password) not in config.context[config.CONTEXT_FIELD_VK_USERS]:
+        # todo: подумать над использованием более оптимального
+        #       с точки зрения асимптотики алгоритма
+        config.context[config.CONTEXT_FIELD_VK_USERS].append((login, password))
 
 
 def delete_vk_user():
@@ -106,6 +105,7 @@ def main_script_start() -> None:
         # todo: процесс создания аутентификации сессии может проходить очень долго, надо как то параллелить этот процесс
         try:
             # todo: обработать капчу(как ошибки, выдача пользователю, капча хэндлером) и ошибки
+            # vk_api.exceptions.AuthError: Unknown error (AUTH; no sid) without token_only=True
             new_session.auth(token_only=True)
         except vk_api.exceptions.Captcha as captcha_ex:
             captcha_handler(captcha_ex)
@@ -139,3 +139,4 @@ def main_script_stop():
 
 # TODO: для определения момента комментирования использовать ВК Longpool
 # TODO: для одновременных запросов использовать VkRequestsPool
+# TODO: добавить docstring'и для функций
