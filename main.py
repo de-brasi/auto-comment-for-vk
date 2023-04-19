@@ -1,8 +1,8 @@
 # main.py -> utils.gui_maker.py
 #        \    |
 #         \   |
-#        core_api.py -> config.py
-#                \----> using_vk_api.py
+#        utils.core_api.py -> config.py
+#                      \----> utils.using_vk_api.py
 
 import sys
 import utils.core_api as core_api
