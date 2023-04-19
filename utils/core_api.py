@@ -53,7 +53,7 @@ def set_time(hour: int = 0, minute: int = 0, second: int = 0) -> None:
     assert 0 <= hour <= 23
     assert 0 <= minute <= 59
     assert 0 <= second <= 59
-    config.context["time"] = (hour, minute, second)
+    config.context["start_time"] = (hour, minute, second)
 
 
 def set_default_time() -> None:
@@ -61,7 +61,7 @@ def set_default_time() -> None:
 
 
 def get_stored_time():
-    return config.context["time"]
+    return config.context["start_time"]
 
 
 def add_vk_user(login: str, password: str) -> None:
