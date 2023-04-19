@@ -1,4 +1,3 @@
-# todo: photos - list of str urls or pair(photo_id, owner_id)?
 # todo: extend with settings field (window size, enabled Captcha reader, etc.)
 # todo: возможно стоит разделить код функций и саму структуру данных конфига
 """
@@ -28,14 +27,14 @@ CONTEXT_FIELD_START_TIME = "start_time"
 CONTEXT_DESCRIPTION = [
     Description(CONTEXT_FIELD_VK_USERS, []),
     Description(CONTEXT_FIELD_PHOTOS, []),
-    Description(CONTEXT_FIELD_START_TIME, (0, 0, 0)),
+    Description(CONTEXT_FIELD_START_TIME, [0, 0, 0]),
 ]
 
 # this fix problem with relative path after importing module
 current_file_path = str(pathlib.Path(__file__).parent)
 
 
-def restore_context() -> Dict[str, list | tuple]:
+def restore_context() -> Dict[str, list]:
     """
     Restores context from last session information
     """
@@ -70,7 +69,7 @@ def restore_context() -> Dict[str, list | tuple]:
     return previous_context
 
 
-def add_missing_fields(complemented_context: Dict[str, list | tuple]) -> None:
+def add_missing_fields(complemented_context: Dict[str, list]) -> None:
     """
     Creates missing context fields and fills them with default values
     """
