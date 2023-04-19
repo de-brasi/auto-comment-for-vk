@@ -1,4 +1,5 @@
 from typing import List
+import vk_api
 
 import json
 import sys
@@ -81,6 +82,17 @@ def main_script_start() -> None:
         with open(parents_path + "/../cached_data/last_session.json", 'w') as cached_session:
             json.dump(config.context, cached_session)
 
+    def captcha_handler(captcha):
+        """ При возникновении капчи вызывается эта функция и ей передается объект
+            капчи. Через метод get_url можно получить ссылку на изображение.
+            Через метод try_again можно попытаться отправить запрос с кодом капчи
+        """
+
+        key = input("Enter captcha code {0}: ".format(captcha.get_url())).strip()
+
+        # Пробуем снова отправить запрос с капчей
+        return captcha.try_again(key)
+
     # запускает выполнение программы:
     # начинается ожидание нужного времени:
     #   решить, будет какая то отсрочка или лонгпулы пока не откроются комментарии.
@@ -92,9 +104,13 @@ def main_script_start() -> None:
     for vk_login, vk_password in config.context["vk_users"]:
         new_session = using_vk_api.create_session(vk_login, vk_password, config.APP_ID)
         # todo: процесс создания аутентификации сессии может проходить очень долго, надо как то параллелить этот процесс
-        new_session.auth(token_only=True)  # todo: обработать капчу(как ошибки, выдача пользователю, капча хэндлером) и ошибки
+        try:
+            # todo: обработать капчу(как ошибки, выдача пользователю, капча хэндлером) и ошибки
+            new_session.auth(token_only=True)
+        except vk_api.exceptions.Captcha as captcha_ex:
+            captcha_handler(captcha_ex)
         sessions.append(new_session)
-    config.sessions = sessions          # TODO: можно ли копировать сессии ВК?
+    config.sessions = sessions
 
     # TODO: решить вопрос с типом исполнения (сколько тредов, как распределить между акками и тд)
     # TODO: разделить фотки по сессиям и выполнять их совместно - сессия + набор фото
@@ -104,7 +120,10 @@ def main_script_start() -> None:
     assert len(config.sessions) > 0
     cur_session = config.sessions[0]
     cur_photos = config.context["photos"]
-    using_vk_api.start_with_delay(cur_session, cur_photos, config.context["time"])
+    try:
+        using_vk_api.start_with_delay(cur_session, cur_photos, config.context["time"])
+    except vk_api.exceptions.Captcha as captcha_ex:
+        captcha_handler(captcha_ex)
 
 
 def main_script_stop():
