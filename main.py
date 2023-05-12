@@ -6,7 +6,7 @@
 
 import sys
 import utils.core_api as core_api
-from utils.gui_maker import make_gui
+from utils.gui_maker import MainWindow
 
 if __name__ == "__main__":
     # todo: -h/--help for overview
@@ -15,7 +15,7 @@ if __name__ == "__main__":
 
     if True:
         # init context: interface and stored with previous run data
-        make_gui()
+        pass
     # else:
         # todo: uncomment
         # if (len(sys.argv) >= 2 and sys.argv[1] == "console":)
