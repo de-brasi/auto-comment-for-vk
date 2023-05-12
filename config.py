@@ -6,6 +6,7 @@ Context description:
 - "photos" - list of urls (type == str)
 - "start_time" - tuple(hour, minute, second)
 """
+from __future__ import annotations
 
 from typing import Dict
 from collections import namedtuple
