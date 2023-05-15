@@ -6,7 +6,11 @@
 
 import sys
 import utils.core_api as core_api
-from utils.gui_maker import MainWindow
+from utils.gui_maker import Example
+
+from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtGui import QIcon
+from main_standalone_window import Ui_MainWindow
 
 if __name__ == "__main__":
     # todo: -h/--help for overview
@@ -15,7 +19,10 @@ if __name__ == "__main__":
 
     if True:
         # init context: interface and stored with previous run data
-        pass
+        app = QtWidgets.QApplication([])
+        application = Example()
+        application.show()
+        app.exit(app.exec())
     # else:
         # todo: uncomment
         # if (len(sys.argv) >= 2 and sys.argv[1] == "console":)
