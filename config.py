@@ -8,6 +8,8 @@ Context description:
 """
 from __future__ import annotations
 
+import os
+
 from typing import Dict
 from collections import namedtuple
 
@@ -32,7 +34,7 @@ CONTEXT_DESCRIPTION = [
 ]
 
 # this fix problem with relative path after importing module
-current_file_path = str(pathlib.Path(__file__).parent)
+current_file_dir_path = str(pathlib.Path(__file__).parent)
 
 
 def restore_context() -> Dict[str, list]:
@@ -46,7 +48,13 @@ def restore_context() -> Dict[str, list]:
         return (not _context) or (CONTEXT_FIELD_VK_USERS not in _context) or (not _context[CONTEXT_FIELD_VK_USERS])
 
     def restore_accounts(context_storage: Dict):
-        with open(current_file_path + '/cached_data/accounts.csv', 'r', newline='') as saved_accounts:
+        os.makedirs(os.path.dirname(current_file_dir_path + '/cached_data/accounts.csv'), exist_ok=True)
+
+        # create file if not exist
+        with open(current_file_dir_path + '/cached_data/accounts.csv', 'a', newline=''):
+            pass
+
+        with open(current_file_dir_path + '/cached_data/accounts.csv', 'r', newline='') as saved_accounts:
             all_records = csv.reader(saved_accounts)
             for record in all_records:
                 assert len(record) == len(["login", "password"])
@@ -55,11 +63,11 @@ def restore_context() -> Dict[str, list]:
     previous_context = dict()
     try:
         # todo: add logging
-        with open(current_file_path + '/cached_data/last_session.json') as latest_context:
+        with open(current_file_dir_path + '/cached_data/last_session.json') as latest_context:
             previous_context = json.load(latest_context)
     except json.decoder.JSONDecodeError:
         # invalid last_session.json content
-        latest_context = open(current_file_path + '/cached_data/last_session.json', 'w')
+        latest_context = open(current_file_dir_path + '/cached_data/last_session.json', 'w')
         latest_context.truncate(0)
         latest_context.write("{}")
         latest_context.close()
