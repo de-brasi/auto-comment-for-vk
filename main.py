@@ -2,8 +2,8 @@ import click
 
 
 @click.command()
-@click.option('--mode', '--m', default='graphic', type=click.Choice(['graphic', 'console']),
-              help='Application launch mode.')
+@click.option('--mode', '--m', default='graphic',
+              type=click.Choice(['graphic', 'console']), help='Application launch mode.')
 def main(mode=None):
     if mode == 'graphic':
         init_gui()
@@ -12,11 +12,16 @@ def main(mode=None):
 
 
 def init_gui():
-    from utils.gui_maker import Example
+    from utils.gui_maker import Interface
     from PyQt5 import QtWidgets
 
+    # Importing map
+    # main.py -> utils.gui_maker -> utils.core_api -> config.py
+    #                 \                        \----> utils.using_vk_api.py
+    #                  \----------> main_standalone_window
+
     app = QtWidgets.QApplication([])
-    application = Example()
+    application = Interface()
     application.show()
     app.exit(app.exec())
 
@@ -30,6 +35,8 @@ def init_command_line_interface():
     #         \   |
     #        utils.core_api.py -> config.py
     #                      \----> utils.using_vk_api.py
+
+    # TODO: добавить список команд + команду help (вывод списка команд)
 
     query = [""]
     cur_command = query[0]

@@ -13,9 +13,9 @@ current_file_dir_path = str(pathlib.Path(__file__).parent)
 current_file_dir_parent_path = str(pathlib.Path(__file__).parent.parent)
 
 
-class Example(QtWidgets.QMainWindow):
+class Interface(QtWidgets.QMainWindow):
     def __init__(self):
-        super(Example, self).__init__()
+        super(Interface, self).__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.init_ui()
