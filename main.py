@@ -1,9 +1,13 @@
+import sys
+
 import click
 
 
 @click.command()
 @click.option('--mode', '--m', default='graphic',
               type=click.Choice(['graphic', 'console']), help='Application launch mode.')
+# todo: добавить запуск в консоли без интерактивного взаимодействия,
+#  а передать время, фотки и сразу встать на выполнение
 def main(mode=None):
     if mode == 'graphic':
         init_gui()
@@ -20,7 +24,9 @@ def init_gui():
     #                 \                        \----> utils.using_vk_api.py
     #                  \----------> main_standalone_window
 
-    app = QtWidgets.QApplication([])
+    app = QtWidgets.QApplication(sys.argv)
+    app.setApplicationName('AutoComment')
+
     application = Interface()
     application.show()
     app.exit(app.exec())
