@@ -1,3 +1,10 @@
+# TODO:
+#  1) нужно добавить возможность редактировать список необходимых фоток в рантайме
+#       (то есть пока время не пришло где-то в отдельном потоке ждет скрпит для запуска,
+#       а разделяемая между потоками память/файл редактируется)
+#  2)
+
+
 from typing import List
 import vk_api
 
@@ -5,11 +12,11 @@ import json
 import sys
 import pathlib
 
-parents_path = str(pathlib.Path(__file__).parent)
-sys.path.append(parents_path)
-
 import config
 import using_vk_api
+
+parents_path = str(pathlib.Path(__file__).parent)
+sys.path.append(parents_path)
 
 
 def add_photo(photo_url: str) -> None:
@@ -94,7 +101,7 @@ def main_script_start() -> None:
 
     # запускает выполнение программы:
     # начинается ожидание нужного времени:
-    #   решить, будет какая то отсрочка или лонгпулы пока не откроются комментарии.
+    #   решить, будет какая-то отсрочка или лонгпулы пока не откроются комментарии.
     # Вероятно надо будет 2 мода ввести (для запуска по времени, либо как только откроются комменты)
 
     save_context()
