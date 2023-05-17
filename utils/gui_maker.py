@@ -1,7 +1,7 @@
 # TODO: всю отрисовку интерфейса в этот модуль
 
 import pathlib
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtWidgets
 from PyQt5.QtGui import QIcon
 from main_standalone_window import Ui_MainWindow
 
@@ -30,6 +30,8 @@ class Interface(QtWidgets.QMainWindow):
         # buttons
         self.ui.add_link_entry_button.clicked.connect(self.get_link_to_add)
         self.ui.delete_link_entry_button.clicked.connect(self.get_link_to_delete)
+        self.ui.time_entry_button.clicked.connect(self.get_time)
+        self.ui.start_script_button.clicked.connect(core_api.main_script_start)
 
     def get_link_to_add(self):
         entry_link_value = self.ui.add_link_entry.text()
@@ -49,8 +51,6 @@ class Interface(QtWidgets.QMainWindow):
         print(core_api.get_added_photos())
 
     def get_time(self):
-        # entry_time = self.ui.
-        pass
-
-    def start_execution(self):
-        pass
+        hour_value = self.ui.time_entry.time().hour()
+        minute_value = self.ui.time_entry.time().minute()
+        core_api.set_time(hour=hour_value, minute=minute_value)
