@@ -169,33 +169,24 @@
      </item>
     </layout>
    </widget>
-   <widget class="QPushButton" name="start_button">
+   <widget class="QPushButton" name="pushButton_2">
     <property name="geometry">
      <rect>
-      <x>440</x>
-      <y>370</y>
-      <width>151</width>
-      <height>121</height>
+      <x>428</x>
+      <y>384</y>
+      <width>171</width>
+      <height>111</height>
      </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">background-color: rgb(143, 240, 164);
-border-style: outset;
-border-radius: 60px;
-padding: 4px;</string>
     </property>
     <property name="text">
      <string>Старт</string>
-    </property>
-    <property name="checkable">
-     <bool>false</bool>
     </property>
    </widget>
    <zorder>horizontalLayoutWidget</zorder>
    <zorder>horizontalLayoutWidget_2</zorder>
    <zorder>MainTextAboutUsage</zorder>
    <zorder>verticalLayoutWidget</zorder>
-   <zorder>start_button</zorder>
+   <zorder>pushButton_2</zorder>
   </widget>
  </widget>
  <resources/>

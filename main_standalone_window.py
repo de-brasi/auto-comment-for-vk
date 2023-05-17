@@ -77,19 +77,14 @@ class Ui_MainWindow(object):
         self.pushButton.setGeometry(QtCore.QRect(200, 10, 89, 25))
         self.pushButton.setObjectName("pushButton")
         self.verticalLayout.addWidget(self.frame_2)
-        self.start_button = QtWidgets.QPushButton(self.centralwidget)
-        self.start_button.setGeometry(QtCore.QRect(440, 370, 151, 121))
-        self.start_button.setStyleSheet("background-color: rgb(143, 240, 164);\n"
-"border-style: outset;\n"
-"border-radius: 60px;\n"
-"padding: 4px;")
-        self.start_button.setCheckable(False)
-        self.start_button.setObjectName("start_button")
+        self.pushButton_2 = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton_2.setGeometry(QtCore.QRect(428, 384, 171, 111))
+        self.pushButton_2.setObjectName("pushButton_2")
         self.horizontalLayoutWidget.raise_()
         self.horizontalLayoutWidget_2.raise_()
         self.MainTextAboutUsage.raise_()
         self.verticalLayoutWidget.raise_()
-        self.start_button.raise_()
+        self.pushButton_2.raise_()
         MainWindow.setCentralWidget(self.centralwidget)
 
         self.retranslateUi(MainWindow)
@@ -103,7 +98,7 @@ class Ui_MainWindow(object):
         self.delete_link_entry_button.setText(_translate("MainWindow", "Удалить"))
         self.label_2.setText(_translate("MainWindow", "Ввод времени, приглашение"))
         self.pushButton.setText(_translate("MainWindow", "Ввод"))
-        self.start_button.setText(_translate("MainWindow", "Старт"))
+        self.pushButton_2.setText(_translate("MainWindow", "Старт"))
 
 
 if __name__ == "__main__":
