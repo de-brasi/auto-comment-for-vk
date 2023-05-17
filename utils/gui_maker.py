@@ -49,6 +49,7 @@ class Interface(QtWidgets.QMainWindow):
         print(core_api.get_added_photos())
 
     def get_time(self):
+        # entry_time = self.ui.
         pass
 
     def start_execution(self):

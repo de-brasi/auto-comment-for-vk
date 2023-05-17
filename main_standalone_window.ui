@@ -107,16 +107,16 @@
       <height>111</height>
      </rect>
     </property>
-    <layout class="QVBoxLayout" name="verticalLayout">
+    <layout class="QVBoxLayout" name="TimeEntryGroup">
      <item>
-      <widget class="QFrame" name="frame">
+      <widget class="QFrame" name="TimeEntryDescriptionFrame">
        <property name="frameShape">
         <enum>QFrame::StyledPanel</enum>
        </property>
        <property name="frameShadow">
         <enum>QFrame::Raised</enum>
        </property>
-       <widget class="QLabel" name="label_2">
+       <widget class="QLabel" name="time_entry_description">
         <property name="geometry">
          <rect>
           <x>0</x>
@@ -132,14 +132,14 @@
       </widget>
      </item>
      <item>
-      <widget class="QFrame" name="frame_2">
+      <widget class="QFrame" name="TimeEntryFrame">
        <property name="frameShape">
         <enum>QFrame::StyledPanel</enum>
        </property>
        <property name="frameShadow">
         <enum>QFrame::Raised</enum>
        </property>
-       <widget class="QTimeEdit" name="timeEdit">
+       <widget class="QTimeEdit" name="time_entry">
         <property name="geometry">
          <rect>
           <x>10</x>
@@ -152,7 +152,7 @@
          <string notr="true">font: 75 20pt &quot;Tlwg Typo&quot;;</string>
         </property>
        </widget>
-       <widget class="QPushButton" name="pushButton">
+       <widget class="QPushButton" name="time_entry_button">
         <property name="geometry">
          <rect>
           <x>200</x>
@@ -169,7 +169,7 @@
      </item>
     </layout>
    </widget>
-   <widget class="QPushButton" name="pushButton_2">
+   <widget class="QPushButton" name="start_script_button">
     <property name="geometry">
      <rect>
       <x>428</x>
@@ -186,7 +186,7 @@
    <zorder>horizontalLayoutWidget_2</zorder>
    <zorder>MainTextAboutUsage</zorder>
    <zorder>verticalLayoutWidget</zorder>
-   <zorder>pushButton_2</zorder>
+   <zorder>start_script_button</zorder>
   </widget>
  </widget>
  <resources/>
