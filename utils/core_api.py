@@ -12,10 +12,12 @@ import json
 import sys
 import pathlib
 
+import config
+
+# Warning! Path of directory that contains a path need to be added to PATH before importing using_vk_api!
 parents_path = str(pathlib.Path(__file__).parent)
 sys.path.append(parents_path)
 
-import config
 import using_vk_api
 
 
