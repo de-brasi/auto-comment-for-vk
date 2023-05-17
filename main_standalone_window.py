@@ -48,9 +48,9 @@ class Ui_MainWindow(object):
         self.delete_link_entry = QtWidgets.QLineEdit(self.horizontalLayoutWidget_2)
         self.delete_link_entry.setObjectName("delete_link_entry")
         self.DeleteLinkGroup.addWidget(self.delete_link_entry)
-        self.delete_link_button = QtWidgets.QPushButton(self.horizontalLayoutWidget_2)
-        self.delete_link_button.setObjectName("delete_link_button")
-        self.DeleteLinkGroup.addWidget(self.delete_link_button)
+        self.delete_link_entry_button = QtWidgets.QPushButton(self.horizontalLayoutWidget_2)
+        self.delete_link_entry_button.setObjectName("delete_link_entry_button")
+        self.DeleteLinkGroup.addWidget(self.delete_link_entry_button)
         self.verticalLayoutWidget = QtWidgets.QWidget(self.centralwidget)
         self.verticalLayoutWidget.setGeometry(QtCore.QRect(40, 380, 361, 111))
         self.verticalLayoutWidget.setObjectName("verticalLayoutWidget")
@@ -80,9 +80,9 @@ class Ui_MainWindow(object):
         self.start_button = QtWidgets.QPushButton(self.centralwidget)
         self.start_button.setGeometry(QtCore.QRect(440, 370, 151, 121))
         self.start_button.setStyleSheet("background-color: rgb(143, 240, 164);\n"
-                                        "border-style: outset;\n"
-                                        "border-radius: 60px;\n"
-                                        "padding: 4px;")
+"border-style: outset;\n"
+"border-radius: 60px;\n"
+"padding: 4px;")
         self.start_button.setCheckable(False)
         self.start_button.setObjectName("start_button")
         self.horizontalLayoutWidget.raise_()
@@ -100,7 +100,7 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.MainTextAboutUsage.setText(_translate("MainWindow", "Какой то текст, описывающий базовый функционал"))
         self.add_link_entry_button.setText(_translate("MainWindow", "Добавить"))
-        self.delete_link_button.setText(_translate("MainWindow", "Удалить"))
+        self.delete_link_entry_button.setText(_translate("MainWindow", "Удалить"))
         self.label_2.setText(_translate("MainWindow", "Ввод времени, приглашение"))
         self.pushButton.setText(_translate("MainWindow", "Ввод"))
         self.start_button.setText(_translate("MainWindow", "Старт"))
@@ -108,7 +108,6 @@ class Ui_MainWindow(object):
 
 if __name__ == "__main__":
     import sys
-
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()

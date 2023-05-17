@@ -90,7 +90,7 @@
       <widget class="QLineEdit" name="delete_link_entry"/>
      </item>
      <item>
-      <widget class="QPushButton" name="delete_link_button">
+      <widget class="QPushButton" name="delete_link_entry_button">
        <property name="text">
         <string>Удалить</string>
        </property>
