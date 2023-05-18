@@ -25,7 +25,7 @@ def init_gui():
     #                  \----------> main_standalone_window
 
     app = QtWidgets.QApplication(sys.argv)
-    app.setApplicationName('AutoComment')
+    app.setApplicationName('Auto Comment')
 
     application = Interface()
     application.show()
