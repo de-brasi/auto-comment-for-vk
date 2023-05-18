@@ -88,6 +88,10 @@ def delete_vk_user():
     pass
 
 
+def get_vk_users_count() -> int:
+    return len(config.context[config.CONTEXT_FIELD_VK_USERS])
+
+
 def main_script_start() -> None:
     def save_context():
         with open(parents_path + "/../cached_data/last_session.json", 'w') as cached_session:
