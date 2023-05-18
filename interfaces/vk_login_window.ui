@@ -29,7 +29,7 @@
   <widget class="QLineEdit" name="login_entry_field">
    <property name="geometry">
     <rect>
-     <x>100</x>
+     <x>80</x>
      <y>50</y>
      <width>261</width>
      <height>25</height>
@@ -39,7 +39,7 @@
   <widget class="QLineEdit" name="password_entry_field">
    <property name="geometry">
     <rect>
-     <x>100</x>
+     <x>80</x>
      <y>90</y>
      <width>261</width>
      <height>25</height>
@@ -70,6 +70,23 @@
    </property>
    <property name="text">
     <string>Пароль</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="is_password_viewable_button">
+   <property name="geometry">
+    <rect>
+     <x>350</x>
+     <y>90</y>
+     <width>21</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <property name="icon">
+    <iconset>
+     <normaloff>../static/crossed_eye.png</normaloff>../static/crossed_eye.png</iconset>
    </property>
   </widget>
  </widget>
