@@ -2,7 +2,9 @@
 #  1) нужно добавить возможность редактировать список необходимых фоток в рантайме
 #       (то есть пока время не пришло где-то в отдельном потоке ждет скрпит для запуска,
 #       а разделяемая между потоками память/файл редактируется)
-#  2)
+#  2) возникли проблемы пр регистрации пользователя через консоль (о нем не было еще информации в прошлой сессии) \
+#  3) обработку цикла комментирования фоток вынести в отдельный процесс,
+#       чтобы не было превышения ожидания ответа от приложения
 
 
 from typing import List
@@ -114,8 +116,12 @@ def main_script_start() -> None:
         # todo: процесс создания аутентификации сессии может проходить очень долго, надо как то параллелить этот процесс
         try:
             # todo: обработать капчу(как ошибки, выдача пользователю, капча хэндлером) и ошибки
-            # vk_api.exceptions.AuthError: Unknown error (AUTH; no sid) without token_only=True
-            new_session.auth(token_only=True)
+            # Catching vk_api.exceptions.AuthError: Unknown error (AUTH; no sid).
+            try:
+                new_session.auth()
+            except vk_api.exceptions.AuthError:
+                new_session.auth(token_only=True)
+
         except vk_api.exceptions.Captcha as captcha_ex:
             captcha_handler(captcha_ex)
         sessions.append(new_session)
