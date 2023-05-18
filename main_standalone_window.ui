@@ -7,19 +7,19 @@
     <x>0</x>
     <y>0</y>
     <width>627</width>
-    <height>518</height>
+    <height>628</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
     <width>627</width>
-    <height>518</height>
+    <height>628</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
     <width>627</width>
-    <height>518</height>
+    <height>628</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -38,10 +38,10 @@
    <widget class="QLabel" name="MainTextAboutUsage">
     <property name="geometry">
      <rect>
-      <x>40</x>
-      <y>80</y>
-      <width>571</width>
-      <height>161</height>
+      <x>20</x>
+      <y>150</y>
+      <width>581</width>
+      <height>201</height>
      </rect>
     </property>
     <property name="mouseTracking">
@@ -57,9 +57,9 @@
    <widget class="QWidget" name="horizontalLayoutWidget">
     <property name="geometry">
      <rect>
-      <x>40</x>
-      <y>250</y>
-      <width>571</width>
+      <x>20</x>
+      <y>360</y>
+      <width>581</width>
       <height>61</height>
      </rect>
     </property>
@@ -79,9 +79,9 @@
    <widget class="QWidget" name="horizontalLayoutWidget_2">
     <property name="geometry">
      <rect>
-      <x>40</x>
-      <y>320</y>
-      <width>571</width>
+      <x>20</x>
+      <y>430</y>
+      <width>581</width>
       <height>71</height>
      </rect>
     </property>
@@ -101,9 +101,9 @@
    <widget class="QWidget" name="verticalLayoutWidget">
     <property name="geometry">
      <rect>
-      <x>40</x>
-      <y>400</y>
-      <width>361</width>
+      <x>20</x>
+      <y>510</y>
+      <width>371</width>
       <height>111</height>
      </rect>
     </property>
@@ -144,6 +144,9 @@
         <property name="frameShadow">
          <enum>QFrame::Raised</enum>
         </property>
+        <property name="lineWidth">
+         <number>1</number>
+        </property>
         <widget class="QTimeEdit" name="time_entry">
          <property name="geometry">
           <rect>
@@ -179,7 +182,7 @@
     <property name="geometry">
      <rect>
       <x>430</x>
-      <y>400</y>
+      <y>510</y>
       <width>161</width>
       <height>101</height>
      </rect>
@@ -188,13 +191,13 @@
      <string>Старт</string>
     </property>
    </widget>
-   <widget class="QFrame" name="frame">
+   <widget class="QFrame" name="AccountsManagmentGroup">
     <property name="geometry">
      <rect>
-      <x>39</x>
-      <y>9</y>
-      <width>571</width>
-      <height>51</height>
+      <x>20</x>
+      <y>10</y>
+      <width>581</width>
+      <height>131</height>
      </rect>
     </property>
     <property name="frameShape">
@@ -203,40 +206,101 @@
     <property name="frameShadow">
      <enum>QFrame::Raised</enum>
     </property>
-    <widget class="QComboBox" name="comboBox">
+    <widget class="QComboBox" name="accounts_list_display">
      <property name="geometry">
       <rect>
-       <x>150</x>
+       <x>210</x>
        <y>10</y>
-       <width>221</width>
+       <width>241</width>
        <height>31</height>
       </rect>
      </property>
+     <item>
+      <property name="text">
+       <string>1</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>2</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>3</string>
+      </property>
+     </item>
     </widget>
-    <widget class="QPushButton" name="pushButton">
+    <widget class="QFrame" name="frame">
      <property name="geometry">
       <rect>
-       <x>380</x>
+       <x>10</x>
        <y>10</y>
-       <width>181</width>
-       <height>31</height>
+       <width>191</width>
+       <height>111</height>
       </rect>
      </property>
-     <property name="text">
-      <string>Добавить аккаунт</string>
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
      </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <widget class="QPushButton" name="add_account_button">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>50</y>
+        <width>141</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Добавить аккаунт</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="accounts_frame_description">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>10</y>
+        <width>111</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Аккаунты VK:&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="accounts_counter">
+      <property name="geometry">
+       <rect>
+        <x>120</x>
+        <y>10</y>
+        <width>51</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">background-color: rgb(255, 255, 255)</string>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
     </widget>
-    <widget class="QLabel" name="label">
+    <widget class="QPushButton" name="delete_account_button">
      <property name="geometry">
       <rect>
-       <x>6</x>
-       <y>16</y>
-       <width>131</width>
-       <height>21</height>
+       <x>460</x>
+       <y>10</y>
+       <width>111</width>
+       <height>41</height>
       </rect>
      </property>
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Аккаунты VK&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>Удалить 
+аккаунт</string>
      </property>
     </widget>
    </widget>
@@ -245,7 +309,7 @@
    <zorder>MainTextAboutUsage</zorder>
    <zorder>verticalLayoutWidget</zorder>
    <zorder>start_script_button</zorder>
-   <zorder>frame</zorder>
+   <zorder>AccountsManagmentGroup</zorder>
   </widget>
  </widget>
  <resources/>
