@@ -48,6 +48,12 @@ class VkRegistrationInterface(QtWidgets.QMainWindow):
     def init_ui(self):
         self.setWindowTitle('Вход в аккаунт VK')
         self._print_visibility_button_icon()
+        self.ui.mail_icon.setPixmap(
+            QtGui.QPixmap(current_file_dir_parent_path + '/static/mail.png')
+        )
+        self.ui.password_icon.setPixmap(
+            QtGui.QPixmap(current_file_dir_parent_path + '/static/password.png')
+        )
 
     def change_visibility(self):
         self.visibility_button_mode += 1
