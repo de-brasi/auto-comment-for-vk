@@ -39,6 +39,12 @@ class VkRegistrationInterface(QtWidgets.QMainWindow):
 
         self.init_ui()
 
+    def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
+        # Rollback
+        self.ui.password_entry_field.clear()
+        self.ui.login_entry_field.clear()
+        self.visibility_button_mode = 1
+
     def init_ui(self):
         self.setWindowTitle('Вход в аккаунт VK')
         self._print_visibility_button_icon()
