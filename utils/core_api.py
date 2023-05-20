@@ -9,6 +9,7 @@
 
 
 from typing import List
+from typing import Tuple
 import vk_api
 
 import json
@@ -81,6 +82,10 @@ def add_vk_user(login: str, password: str) -> None:
         # todo: подумать над использованием более оптимального
         #       с точки зрения асимптотики алгоритма
         config.context[config.CONTEXT_FIELD_VK_USERS].append((login, password))
+
+
+def get_vk_users() -> List[Tuple[str, str]]:
+    return config.context[config.CONTEXT_FIELD_VK_USERS]
 
 
 def delete_vk_user():
