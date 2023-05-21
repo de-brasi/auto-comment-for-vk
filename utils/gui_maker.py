@@ -24,7 +24,17 @@ class RunnerWorker(QThread):
         QThread.__init__(self)
 
     def run(self):
+        print('Start')
+        while True:
+            counter = 0
+            if counter % 100_000 == 0:
+                print('!')
+            counter += 1
         core_api.main_script_start()
+
+    def quit(self) -> None:
+        print('Abort!')
+        QThread.quit(self)
 
 
 class VkRegistrationInterface(QtWidgets.QMainWindow):
@@ -132,12 +142,26 @@ class Interface(QtWidgets.QMainWindow):
         self.ui.add_link_entry_button.clicked.connect(self.get_link_to_add)
         self.ui.delete_link_entry_button.clicked.connect(self.get_link_to_delete)
         self.ui.time_entry_button.clicked.connect(self.get_time)
-        self.ui.start_script_button.clicked.connect(self.main_script_runner.start)
+        self.ui.script_management_button.clicked.connect(self.run_main_script_and_set_button_to_stop_condition)
         self.ui.add_account_button.clicked.connect(self.show_login_window)
         self.ui.delete_account_button.clicked.connect(self.delete_account)
 
         self.ui.accounts_counter.setText(str(core_api.get_vk_users_count()))    # set count of accounts
         self.ui.time_entry.setTime(QTime(*core_api.get_stored_time()))          # set last used time
+
+    # TODO: проблема с некорректной работой из-за того, что видимо надо переиспользовать поток, вместо попытки запусить уже прерванный
+    def run_main_script_and_set_button_to_stop_condition(self):
+        self.main_script_runner = RunnerWorker()
+        self.main_script_runner.start()
+
+        self.ui.script_management_button.setText('Стоп')
+        self.ui.script_management_button.clicked.connect(self.stop_main_script_and_set_button_to_start_condition)
+
+    def stop_main_script_and_set_button_to_start_condition(self):
+        self.main_script_runner.quit()
+        self.main_script_runner.wait()
+        self.ui.script_management_button.setText('Старт')
+        self.ui.script_management_button.clicked.connect(self.run_main_script_and_set_button_to_stop_condition)
 
     def get_link_to_add(self):
         entry_link_value = self.ui.add_link_entry.text()
