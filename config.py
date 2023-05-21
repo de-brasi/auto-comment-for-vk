@@ -44,21 +44,6 @@ def restore_context() -> Dict[str, list]:
     # TODO: список фоток предыдущего контекста надо возвращать
     #  только если прошлая сессия крашнулась,
     #  иначе вероятнее пользователь захочет ввести по новой фотки
-    def not_contained_accounts(_context: Dict[str, list | tuple]):
-        return (not _context) or (CONTEXT_FIELD_VK_USERS not in _context) or (not _context[CONTEXT_FIELD_VK_USERS])
-
-    def restore_accounts(context_storage: Dict):
-        os.makedirs(os.path.dirname(current_file_dir_path + '/cached_data/accounts.csv'), exist_ok=True)
-
-        # create file if not exist
-        with open(current_file_dir_path + '/cached_data/accounts.csv', 'a', newline=''):
-            pass
-
-        with open(current_file_dir_path + '/cached_data/accounts.csv', 'r', newline='') as saved_accounts:
-            all_records = csv.reader(saved_accounts)
-            for record in all_records:
-                assert len(record) == len(["login", "password"])
-                context_storage[CONTEXT_FIELD_VK_USERS].append((record[LOGIN], record[PASSWORD]))
 
     previous_context = dict()
     try:
@@ -73,10 +58,6 @@ def restore_context() -> Dict[str, list]:
         latest_context.close()
     except Exception as error:
         print("Unexpected exception: " + repr(error))
-
-    if not_contained_accounts(previous_context):
-        previous_context[CONTEXT_FIELD_VK_USERS] = []
-        restore_accounts(previous_context)
 
     return previous_context
 
