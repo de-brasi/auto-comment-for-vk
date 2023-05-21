@@ -70,6 +70,11 @@ class VkRegistrationInterface(QtWidgets.QMainWindow):
         login = self.ui.login_entry_field.text()
         password = self.ui.password_entry_field.text()
 
+        # TODO: 1) если введенные данные аккаунта норм (видимо надо пробовать регистрацию в вк), то закрыть окно,
+        #               а так же обновить счетчик аккаунтов и добавить аккаунт в выпадающий список
+        #       2) иначе надо выдавать предупреждение типа Bad Password и оставлять окно рабочим
+        #       3) а так же надо проверять не были ли введены эти данные ранее
+
         # TODO: проверять валидность логина и пароля,
         #       если валидно, то закрыть окно и добавить аккаунт,
         #       иначе пдсветить красным/отсигнализировать и (стереть введенные данные из полей?)
@@ -82,6 +87,9 @@ class VkRegistrationInterface(QtWidgets.QMainWindow):
 
         core_api.add_vk_user(login, password)
         core_api.save_context()
+
+        # Print actual count
+        self.parent_window.ui.accounts_counter.setText(str(core_api.get_vk_users_count()))
         print(config.context)
 
     def _print_visibility_button_icon(self):
@@ -102,11 +110,11 @@ class Interface(QtWidgets.QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.init_ui()
-        self.vk_registration_window = VkRegistrationInterface(self)
+        self.vk_login_window = VkRegistrationInterface(self)
 
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
-        if self.vk_registration_window:
-            self.vk_registration_window.close()
+        if self.vk_login_window:
+            self.vk_login_window.close()
 
     def init_ui(self):
         self.setWindowTitle('Авто Коммент')
@@ -125,7 +133,8 @@ class Interface(QtWidgets.QMainWindow):
         self.ui.delete_link_entry_button.clicked.connect(self.get_link_to_delete)
         self.ui.time_entry_button.clicked.connect(self.get_time)
         self.ui.start_script_button.clicked.connect(self.main_script_runner.start)
-        self.ui.add_account_button.clicked.connect(self.add_account)
+        self.ui.add_account_button.clicked.connect(self.show_login_window)
+        self.ui.delete_account_button.clicked.connect(self.delete_account)
 
         self.ui.accounts_counter.setText(str(core_api.get_vk_users_count()))    # set count of accounts
         self.ui.time_entry.setTime(QTime(*core_api.get_stored_time()))          # set last used time
@@ -136,9 +145,6 @@ class Interface(QtWidgets.QMainWindow):
             self.ui.add_link_entry.clear()
             core_api.add_photo(entry_link_value)
 
-        # todo: debug
-        print(core_api.get_added_photos())
-
     def get_link_to_delete(self):
         # todo: выводить окно с сообщением удалено или нет
         entry_link_value = self.ui.delete_link_entry.text()
@@ -146,25 +152,24 @@ class Interface(QtWidgets.QMainWindow):
             self.ui.delete_link_entry.clear()
             core_api.delete_photo(entry_link_value)
 
-        # todo: debug
-        print(core_api.get_added_photos())
-
     def get_time(self):
         hour_value = self.ui.time_entry.time().hour()
         minute_value = self.ui.time_entry.time().minute()
         core_api.set_time(hour=hour_value, minute=minute_value)
 
-    def add_account(self):
-        # TODO: 1) если введенные данные аккаунта норм (видимо надо пробовать регистрацию в вк), то закрыть окно,
-        #               а так же обновить счетчик аккаунтов и добавить аккаунт в выпадающий список
-        #       2) иначе надо выдавать предупреждение типа Bad Password и оставлять окно рабочим
-        #       3) а так же надо проверять не были ли введены эти данные ранее
-
-        self.vk_registration_window.show()
-        self.ui.accounts_counter.setText(str(core_api.get_vk_users_count()))
+    def show_login_window(self):
+        self.vk_login_window.show()
 
     def delete_account(self):
-        pass
+        mail_to_delete = self.ui.accounts_list_display.currentText()
+        core_api.delete_vk_user(mail_to_delete)
+        core_api.save_context()
+
+        self.ui.accounts_list_display.removeItem(
+            self.ui.accounts_list_display.currentIndex()
+        )
+
+        # print actual accounts count
         self.ui.accounts_counter.setText(str(core_api.get_vk_users_count()))
 
     def add_account_to_combo_box(self, mail: str) -> None:
