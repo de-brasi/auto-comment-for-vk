@@ -81,7 +81,7 @@ def add_vk_user(login: str, password: str) -> None:
     if [login, password] not in config.context[config.CONTEXT_FIELD_VK_USERS]:
         # todo: подумать над использованием более оптимального
         #       с точки зрения асимптотики алгоритма
-        config.context[config.CONTEXT_FIELD_VK_USERS].append((login, password))
+        config.context[config.CONTEXT_FIELD_VK_USERS].append([login, password])
 
 
 def get_vk_users() -> List[Tuple[str, str]]:
@@ -97,11 +97,12 @@ def get_vk_users_count() -> int:
     return len(config.context[config.CONTEXT_FIELD_VK_USERS])
 
 
-def main_script_start() -> None:
-    def save_context():
-        with open(parents_path + "/../cached_data/last_session.json", 'w') as cached_session:
-            json.dump(config.context, cached_session)
+def save_context():
+    with open(parents_path + "/../cached_data/last_session.json", 'w') as cached_session:
+        json.dump(config.context, cached_session)
 
+
+def main_script_start() -> None:
     def captcha_handler(captcha):
         """ При возникновении капчи вызывается эта функция и ей передается объект
             капчи. Через метод get_url можно получить ссылку на изображение.
@@ -113,7 +114,7 @@ def main_script_start() -> None:
         # Пробуем снова отправить запрос с капчей
         return captcha.try_again(key)
 
-    # запускает выполнение программы:
+    # Начинает выполнение программы:
     # начинается ожидание нужного времени:
     #   решить, будет какая-то отсрочка или лонгпулы пока не откроются комментарии.
     # Вероятно надо будет 2 мода ввести (для запуска по времени, либо как только откроются комменты)
