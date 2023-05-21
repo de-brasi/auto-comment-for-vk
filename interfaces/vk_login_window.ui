@@ -36,7 +36,7 @@
     </rect>
    </property>
   </widget>
-  <widget class="QPushButton" name="pushButton">
+  <widget class="QPushButton" name="entry_button">
    <property name="geometry">
     <rect>
      <x>90</x>
@@ -50,7 +50,7 @@
    </property>
    <property name="icon">
     <iconset>
-     <normaloff>../static/vk_logo.png</normaloff>../static/vk_logo.png</iconset>
+     <normaloff>../../../../../../.designer/static/vk_logo.png</normaloff>../../../../../../.designer/static/vk_logo.png</iconset>
    </property>
    <property name="iconSize">
     <size>
@@ -73,7 +73,7 @@
    </property>
    <property name="icon">
     <iconset>
-     <normaloff>../static/crossed_eye.png</normaloff>../static/crossed_eye.png</iconset>
+     <normaloff>../../../../../../.designer/static/crossed_eye.png</normaloff>../../../../../../.designer/static/crossed_eye.png</iconset>
    </property>
   </widget>
   <widget class="QFrame" name="LoginLabel">
@@ -117,7 +117,7 @@
      <string/>
     </property>
     <property name="pixmap">
-     <pixmap>../static/mail.png</pixmap>
+     <pixmap>../../../../../../.designer/static/mail.png</pixmap>
     </property>
     <property name="scaledContents">
      <bool>true</bool>
@@ -165,7 +165,7 @@
      <string/>
     </property>
     <property name="pixmap">
-     <pixmap>../static/password.png</pixmap>
+     <pixmap>../../../../../../.designer/static/password.png</pixmap>
     </property>
     <property name="scaledContents">
      <bool>true</bool>
