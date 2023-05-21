@@ -1,11 +1,14 @@
 # TODO: 1) Необходимо добавить обработку кейса когда нет зареганных пользователей, а так же добавить регистрацию
 #       2) После нажатия кнопки Старт менять ее название на Стоп (с соответствующим поведением)
+from __future__ import annotations
 
 import pathlib
 
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import QThread, QTime
-from PyQt5 import QtGui
+from PyQt5 import QtGui, QtCore
+
+import config
 from interfaces.main_standalone_window import Ui_MainWindow
 from interfaces.vk_login_window import Ui_RegistrationWindow
 
@@ -25,12 +28,13 @@ class RunnerWorker(QThread):
 
 
 class VkRegistrationInterface(QtWidgets.QMainWindow):
-    def __init__(self):
+    def __init__(self, parent: Interface):
         super(VkRegistrationInterface, self).__init__()
+        self.parent_window = parent
         self.ui = Ui_RegistrationWindow()
         self.ui.setupUi(self)
 
-        self.ui.pushButton.clicked.connect(self.get_login_info)
+        self.ui.entry_button.clicked.connect(self.get_login_info)
         self.ui.is_password_viewable_button.clicked.connect(self.change_visibility)
 
         self.visibility_button_icons = ['opened_eye.png', 'crossed_eye.png']
@@ -47,6 +51,7 @@ class VkRegistrationInterface(QtWidgets.QMainWindow):
 
     def init_ui(self):
         self.setWindowTitle('Вход в аккаунт VK')
+        self.ui.entry_button.setIcon(QtGui.QIcon(current_file_dir_parent_path + '/static/vk_logo.png'))
         self._print_visibility_button_icon()
         self.ui.mail_icon.setPixmap(
             QtGui.QPixmap(current_file_dir_parent_path + '/static/mail.png')
@@ -62,13 +67,22 @@ class VkRegistrationInterface(QtWidgets.QMainWindow):
         self._print_visibility_button_icon()
 
     def get_login_info(self):
-        # TODO: проверять валидность логина и пароля,
-        #       если валидно, то закрыть окно и добавить аккаунт,
-        #       иначе пдсветить красным/отсигнализировать и (стереть введенные данные из полей?)
         login = self.ui.login_entry_field.text()
         password = self.ui.password_entry_field.text()
 
-        print(login, password)
+        # TODO: проверять валидность логина и пароля,
+        #       если валидно, то закрыть окно и добавить аккаунт,
+        #       иначе пдсветить красным/отсигнализировать и (стереть введенные данные из полей?)
+
+        self.parent_window.ui.accounts_list_display.addItem(login)
+        # set last as active item
+        self.parent_window.ui.accounts_list_display.setCurrentIndex(
+            self.parent_window.ui.accounts_list_display.count() - 1
+        )
+
+        core_api.add_vk_user(login, password)
+        core_api.save_context()
+        print(config.context)
 
     def _print_visibility_button_icon(self):
         self.ui.is_password_viewable_button.setIcon(
@@ -88,7 +102,7 @@ class Interface(QtWidgets.QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.init_ui()
-        self.vk_registration_window = VkRegistrationInterface()
+        self.vk_registration_window = VkRegistrationInterface(self)
 
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
         if self.vk_registration_window:
@@ -101,6 +115,10 @@ class Interface(QtWidgets.QMainWindow):
         self.setWindowIcon(QtGui.QIcon(current_file_dir_parent_path + '/static/main_window_icon.png'))
         self.ui.add_link_entry.setPlaceholderText('Введите ссылку добавляемого объекта')
         self.ui.delete_link_entry.setPlaceholderText('Введите ссылку удаляемого объекта')
+        self.ui.accounts_counter.setAlignment(QtCore.Qt.AlignCenter)
+
+        for login, password in core_api.get_vk_users():
+            self.add_account_to_combo_box(login)
 
         # buttons
         self.ui.add_link_entry_button.clicked.connect(self.get_link_to_add)
@@ -148,3 +166,7 @@ class Interface(QtWidgets.QMainWindow):
     def delete_account(self):
         pass
         self.ui.accounts_counter.setText(str(core_api.get_vk_users_count()))
+
+    def add_account_to_combo_box(self, mail: str) -> None:
+        # todo: пробовать делать (и запоминать сессии), брать имя-фамилию и выводить ее
+        self.ui.accounts_list_display.addItem(mail)
