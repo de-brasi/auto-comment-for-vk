@@ -88,9 +88,10 @@ def get_vk_users() -> List[Tuple[str, str]]:
     return config.context[config.CONTEXT_FIELD_VK_USERS]
 
 
-def delete_vk_user():
-    # TODO: low priority
-    pass
+def delete_vk_user(id_of_deleting: str) -> None:
+    config.context[config.CONTEXT_FIELD_VK_USERS] = [
+        [login, password] for login, password in config.context[config.CONTEXT_FIELD_VK_USERS]
+        if login != id_of_deleting]
 
 
 def get_vk_users_count() -> int:
