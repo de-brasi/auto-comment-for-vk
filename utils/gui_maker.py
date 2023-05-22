@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import pathlib
+import time
 
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import QThread, QTime
@@ -17,24 +18,6 @@ import utils.core_api as core_api
 # this fix problem with relative path after importing module
 current_file_dir_path = str(pathlib.Path(__file__).parent)
 current_file_dir_parent_path = str(pathlib.Path(__file__).parent.parent)
-
-
-class RunnerWorker(QThread):
-    def __init__(self):
-        QThread.__init__(self)
-
-    def run(self):
-        print('Start')
-        while True:
-            counter = 0
-            if counter % 100_000 == 0:
-                print('!')
-            counter += 1
-        core_api.main_script_start()
-
-    def quit(self) -> None:
-        print('Abort!')
-        QThread.quit(self)
 
 
 class VkRegistrationInterface(QtWidgets.QMainWindow):
@@ -113,9 +96,26 @@ class VkRegistrationInterface(QtWidgets.QMainWindow):
         )
 
 
+class RunnerWorker(QThread):
+    def __init__(self):
+        QThread.__init__(self)
+
+    def run(self):
+        print('Start')
+        while True:
+            print('Hi!')
+            time.sleep(1)
+        core_api.main_script_start()
+
+    def stop(self):
+        print('Abort!')
+        self.terminate()
+
+
 class Interface(QtWidgets.QMainWindow):
     def __init__(self):
         super(Interface, self).__init__()
+        # todo: change to None
         self.main_script_runner = RunnerWorker()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
@@ -152,14 +152,15 @@ class Interface(QtWidgets.QMainWindow):
     # TODO: проблема с некорректной работой из-за того, что видимо надо переиспользовать поток, вместо попытки запусить уже прерванный
     def run_main_script_and_set_button_to_stop_condition(self):
         self.main_script_runner = RunnerWorker()
+        self.main_script_runner.setTerminationEnabled(True)
         self.main_script_runner.start()
 
         self.ui.script_management_button.setText('Стоп')
         self.ui.script_management_button.clicked.connect(self.stop_main_script_and_set_button_to_start_condition)
 
     def stop_main_script_and_set_button_to_start_condition(self):
-        self.main_script_runner.quit()
-        self.main_script_runner.wait()
+        self.main_script_runner.stop()
+        print(self.main_script_runner.isFinished())
         self.ui.script_management_button.setText('Старт')
         self.ui.script_management_button.clicked.connect(self.run_main_script_and_set_button_to_stop_condition)
 
