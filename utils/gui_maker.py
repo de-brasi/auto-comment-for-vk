@@ -156,12 +156,14 @@ class Interface(QtWidgets.QMainWindow):
         self.main_script_runner.start()
 
         self.ui.script_management_button.setText('Стоп')
+        self.ui.script_management_button.clicked.disconnect(self.run_main_script_and_set_button_to_stop_condition)
         self.ui.script_management_button.clicked.connect(self.stop_main_script_and_set_button_to_start_condition)
 
     def stop_main_script_and_set_button_to_start_condition(self):
         self.main_script_runner.stop()
         print(self.main_script_runner.isFinished())
         self.ui.script_management_button.setText('Старт')
+        self.ui.script_management_button.clicked.disconnect(self.stop_main_script_and_set_button_to_start_condition)
         self.ui.script_management_button.clicked.connect(self.run_main_script_and_set_button_to_stop_condition)
 
     def get_link_to_add(self):
