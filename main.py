@@ -51,16 +51,16 @@ def init_command_line_interface():
         cur_command = query[0]
         if cur_command == "add_photo":
             arg = query[1]
-            core_api.add_photo(arg)
+            core_api.photo_add(arg)
         elif cur_command == "set_time":
             h = int(query[1])
             m = int(query[2])
             s = int(query[3])
-            core_api.set_time(h, m, s)
+            core_api.time_set_value(h, m, s)
         elif cur_command == "add_vk_user":
             login = query[1]
             password = query[2]
-            core_api.add_vk_user(login, password)
+            core_api.vk_user_add(login, password)
         elif cur_command == "delete_photo":
             pass
         elif cur_command == "set_default_time":
