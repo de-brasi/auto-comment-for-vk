@@ -25,7 +25,10 @@ sys.path.append(parents_path)
 import using_vk_api
 
 
-def add_photo(photo_url: str) -> None:
+###############################################################
+# --------------Photo management--------------
+###############################################################
+def photo_add(photo_url: str) -> None:
     # todo: добавление фоток происходит не пачкой - то время,
     #  пока пользователь копипастит ссылки можно использовать на парсинг,
     #  либо на тяжелые работы с коллекциями
@@ -37,7 +40,7 @@ def add_photo(photo_url: str) -> None:
         config.context[config.CONTEXT_FIELD_PHOTOS].append(photo_url)
 
 
-def delete_photo(to_delete_photo_url: str) -> None:
+def photo_delete(to_delete_photo_url: str) -> None:
     # todo: проверять наличие этой фотки
     # todo: выбрать нужную коллекцию дял фоток
     #   (для малого количества фото пройдет простое нарезание и копирование списка)
@@ -55,50 +58,66 @@ def delete_photo(to_delete_photo_url: str) -> None:
     config.context[config.CONTEXT_FIELD_PHOTOS] = after_deleting
 
 
-def get_added_photos(with_copy: bool = False) -> List[str]:
+def photo_get_added(with_copy: bool = False) -> List[str]:
     res = config.context[config.CONTEXT_FIELD_PHOTOS]
     if with_copy:
         res = res.copy()
     return res
 
 
-def set_time(hour: int = 0, minute: int = 0, second: int = 0) -> None:
+def photo_check_if_stored(photo_to_check: str) -> bool:
+    return photo_to_check in photo_get_added()
+###############################################################
+
+
+###############################################################
+# --------------Time management--------------
+###############################################################
+def time_set_value(hour: int = 0, minute: int = 0, second: int = 0) -> None:
     assert 0 <= hour <= 23
     assert 0 <= minute <= 59
     assert 0 <= second <= 59
     config.context[config.CONTEXT_FIELD_START_TIME] = [hour, minute, second]
 
 
-def set_default_time() -> None:
-    set_time()
+def time_set_default_value() -> None:
+    time_set_value()
 
 
-def get_stored_time():
+def time_get_stored():
     return config.context[config.CONTEXT_FIELD_START_TIME]
+###############################################################
 
 
-def add_vk_user(login: str, password: str) -> None:
+###############################################################
+# --------------VK Users management--------------
+###############################################################
+def vk_user_add(login: str, password: str) -> None:
     if [login, password] not in config.context[config.CONTEXT_FIELD_VK_USERS]:
         # todo: подумать над использованием более оптимального
         #       с точки зрения асимптотики алгоритма
         config.context[config.CONTEXT_FIELD_VK_USERS].append([login, password])
 
 
-def get_vk_users() -> List[Tuple[str, str]]:
+def vk_users_get() -> List[Tuple[str, str]]:
     return config.context[config.CONTEXT_FIELD_VK_USERS]
 
 
-def delete_vk_user(id_of_deleting: str) -> None:
+def vk_user_delete(id_of_deleting: str) -> None:
     config.context[config.CONTEXT_FIELD_VK_USERS] = [
         [login, password] for login, password in config.context[config.CONTEXT_FIELD_VK_USERS]
         if login != id_of_deleting]
 
 
-def get_vk_users_count() -> int:
+def vk_users_get_count() -> int:
     return len(config.context[config.CONTEXT_FIELD_VK_USERS])
+###############################################################
 
 
-def save_context():
+###############################################################
+# --------------Other--------------
+###############################################################
+def context_save():
     with open(parents_path + "/../cached_data/last_session.json", 'w') as cached_session:
         json.dump(config.context, cached_session)
 
@@ -120,7 +139,7 @@ def main_script_start() -> None:
     #   решить, будет какая-то отсрочка или лонгпулы пока не откроются комментарии.
     # Вероятно надо будет 2 мода ввести (для запуска по времени, либо как только откроются комменты)
 
-    save_context()
+    context_save()
     sessions = []
 
     for vk_login, vk_password in config.context["vk_users"]:
@@ -162,6 +181,7 @@ def main_script_stop():
     # TODO: зависит от выбранного способа ускорения -
     #  если потоки, то убивать рабочие (а до этого их надо хранить)
     pass
+###############################################################
 
 
 # TODO: для определения момента комментирования использовать ВК Longpool
