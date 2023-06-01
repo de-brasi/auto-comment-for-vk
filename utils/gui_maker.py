@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import pathlib
-import time
 
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import QThread, QTime
@@ -12,12 +11,31 @@ from PyQt5 import QtGui, QtCore
 import config
 from interfaces.main_standalone_window import Ui_MainWindow
 from interfaces.vk_login_window import Ui_RegistrationWindow
+from interfaces.popup_result_window import Ui_MessageWindow
 
 import utils.core_api as core_api
 
 # this fix problem with relative path after importing module
 current_file_dir_path = str(pathlib.Path(__file__).parent)
 current_file_dir_parent_path = str(pathlib.Path(__file__).parent.parent)
+
+
+class MessageWindow(QtWidgets.QWidget):
+    def __init__(self):
+        super(MessageWindow, self).__init__()
+        self.ui = Ui_MessageWindow()
+        self.ui.setupUi(self)
+        self.setWindowTitle('   ')
+        self.ui.button_ok.clicked.connect(self.close)
+
+        # Default size
+        self.size_default = self.size()
+
+    def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
+        self.resize_to_default()
+
+    def resize_to_default(self):
+        self.resize(self.size_default)
 
 
 class VkRegistrationInterface(QtWidgets.QMainWindow):
@@ -78,11 +96,11 @@ class VkRegistrationInterface(QtWidgets.QMainWindow):
             self.parent_window.ui.accounts_list_display.count() - 1
         )
 
-        core_api.add_vk_user(login, password)
-        core_api.save_context()
+        core_api.vk_user_add(login, password)
+        core_api.context_save()
 
         # Print actual count
-        self.parent_window.ui.accounts_counter.setText(str(core_api.get_vk_users_count()))
+        self.parent_window.ui.accounts_counter.setText(str(core_api.vk_users_get_count()))
         print(config.context)
 
     def _print_visibility_button_icon(self):
@@ -96,35 +114,26 @@ class VkRegistrationInterface(QtWidgets.QMainWindow):
         )
 
 
-class RunnerWorker(QThread):
-    def __init__(self):
-        QThread.__init__(self)
-
-    def run(self):
-        print('Start')
-        while True:
-            print('Hi!')
-            time.sleep(1)
-        core_api.main_script_start()
-
-    def stop(self):
-        print('Abort!')
-        self.terminate()
-
-
 class Interface(QtWidgets.QMainWindow):
     def __init__(self):
         super(Interface, self).__init__()
-        # todo: change to None
-        self.main_script_runner = RunnerWorker()
+        self.main_script_runner = RunnerWorker(self)
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.init_ui()
-        self.vk_login_window = VkRegistrationInterface(self)
+
+        ############################################################
+        # Child windows
+        self.child_vk_login_window = VkRegistrationInterface(self)
+        self.child_result_window = MessageWindow()
+        ############################################################
 
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
-        if self.vk_login_window:
-            self.vk_login_window.close()
+        # Close relative windows
+        if self.child_vk_login_window:
+            self.child_vk_login_window.close()
+        if self.child_result_window:
+            self.child_result_window.close()
 
     def init_ui(self):
         self.setWindowTitle('Авто Коммент')
@@ -135,7 +144,7 @@ class Interface(QtWidgets.QMainWindow):
         self.ui.delete_link_entry.setPlaceholderText('Введите ссылку удаляемого объекта')
         self.ui.accounts_counter.setAlignment(QtCore.Qt.AlignCenter)
 
-        for login, password in core_api.get_vk_users():
+        for login, password in core_api.vk_users_get():
             self.add_account_to_combo_box(login)
 
         # buttons
@@ -146,12 +155,12 @@ class Interface(QtWidgets.QMainWindow):
         self.ui.add_account_button.clicked.connect(self.show_login_window)
         self.ui.delete_account_button.clicked.connect(self.delete_account)
 
-        self.ui.accounts_counter.setText(str(core_api.get_vk_users_count()))    # set count of accounts
-        self.ui.time_entry.setTime(QTime(*core_api.get_stored_time()))          # set last used time
+        self.ui.accounts_counter.setText(str(core_api.vk_users_get_count()))    # set count of accounts
+        self.ui.time_entry.setTime(QTime(*core_api.time_get_stored()))          # set last used time
 
-    # TODO: проблема с некорректной работой из-за того, что видимо надо переиспользовать поток, вместо попытки запусить уже прерванный
     def run_main_script_and_set_button_to_stop_condition(self):
-        self.main_script_runner = RunnerWorker()
+        del self.main_script_runner
+        self.main_script_runner = RunnerWorker(self)
         self.main_script_runner.setTerminationEnabled(True)
         self.main_script_runner.start()
 
@@ -161,44 +170,96 @@ class Interface(QtWidgets.QMainWindow):
 
     def stop_main_script_and_set_button_to_start_condition(self):
         self.main_script_runner.stop()
-        print(self.main_script_runner.isFinished())
+        self.ui.script_management_button.setText('Старт')
+        self.ui.script_management_button.clicked.disconnect(self.stop_main_script_and_set_button_to_start_condition)
+        self.ui.script_management_button.clicked.connect(self.run_main_script_and_set_button_to_stop_condition)
+
+    def handle_script_finishing(self):
+        self._show_result_window(success=True)
+
         self.ui.script_management_button.setText('Старт')
         self.ui.script_management_button.clicked.disconnect(self.stop_main_script_and_set_button_to_start_condition)
         self.ui.script_management_button.clicked.connect(self.run_main_script_and_set_button_to_stop_condition)
 
     def get_link_to_add(self):
         entry_link_value = self.ui.add_link_entry.text()
+        self.ui.add_link_entry.clear()
+
         if entry_link_value:
-            self.ui.add_link_entry.clear()
-            core_api.add_photo(entry_link_value)
+            if not core_api.photo_check_if_stored(entry_link_value):
+                core_api.photo_add(entry_link_value)
+            else:
+                self._show_result_window(success=False, message="Такое фото уже сохранено")
 
     def get_link_to_delete(self):
-        # todo: выводить окно с сообщением удалено или нет
         entry_link_value = self.ui.delete_link_entry.text()
+        self.ui.delete_link_entry.clear()
+
         if entry_link_value:
-            self.ui.delete_link_entry.clear()
-            core_api.delete_photo(entry_link_value)
+            if core_api.photo_check_if_stored(entry_link_value):
+                core_api.photo_delete(entry_link_value)
+            else:
+                self._show_result_window(success=False, message="Такое фото не сохранено")
 
     def get_time(self):
         hour_value = self.ui.time_entry.time().hour()
         minute_value = self.ui.time_entry.time().minute()
-        core_api.set_time(hour=hour_value, minute=minute_value)
+        core_api.time_set_value(hour=hour_value, minute=minute_value)
 
     def show_login_window(self):
-        self.vk_login_window.show()
+        self.child_vk_login_window.show()
 
     def delete_account(self):
         mail_to_delete = self.ui.accounts_list_display.currentText()
-        core_api.delete_vk_user(mail_to_delete)
-        core_api.save_context()
+        core_api.vk_user_delete(mail_to_delete)
+        core_api.context_save()
 
         self.ui.accounts_list_display.removeItem(
             self.ui.accounts_list_display.currentIndex()
         )
 
         # print actual accounts count
-        self.ui.accounts_counter.setText(str(core_api.get_vk_users_count()))
+        self.ui.accounts_counter.setText(str(core_api.vk_users_get_count()))
 
     def add_account_to_combo_box(self, mail: str) -> None:
         # todo: пробовать делать (и запоминать сессии), брать имя-фамилию и выводить ее
         self.ui.accounts_list_display.addItem(mail)
+
+    def _show_result_window(self, success: bool, message: str = None):
+        if success:
+            showed_message = "Успешно!"
+        else:
+            showed_message = "Неудача!"
+
+        if message:
+            showed_message += message
+
+            # resize width for message
+            current_height = self.child_result_window.minimumSize().height()
+            required_width = self.child_result_window.layout().sizeHint().width()
+
+            # self.child_result_window.resize(required_width, current_height)
+            self.child_result_window.resize(self.child_result_window.layout().sizeHint())
+
+        print(self.child_result_window.ui.message.text())
+        self.child_result_window.ui.message.setText(showed_message)
+        print(self.child_result_window.ui.message.text())
+
+        self.child_result_window.show()
+
+
+class RunnerWorker(QThread):
+    def __init__(self, calling_window: Interface):
+        self.calling_window = calling_window
+        QThread.__init__(self)
+
+    def run(self):
+        print('Start')
+        core_api.main_script_start()
+        print('Done')
+        self.calling_window.handle_script_finishing()
+
+    def stop(self):
+        print('Stopped!')
+        self.terminate()
+
