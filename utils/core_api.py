@@ -135,6 +135,24 @@ def main_script_start() -> None:
         # Пробуем снова отправить запрос с капчей
         return captcha.try_again(key)
 
+    def try_to_handle_captcha(captcha: vk_api.exceptions.Captcha):
+        try:
+            captcha_handler(captcha)
+            return True
+        except vk_api.exceptions.Captcha:
+            return False
+
+    def handle_captcha_with_flood_control(captcha: vk_api.exceptions.Captcha):
+        try:
+            while True:
+                if try_to_handle_captcha(captcha):
+                    break
+                else:
+                    continue
+        except vk_api.exceptions.ApiError:
+            # vk_api.exceptions.ApiError: [9] Flood control
+            print("Too many requests. Try later")
+
     # Начинает выполнение программы:
     # начинается ожидание нужного времени:
     #   решить, будет какая-то отсрочка или лонгпулы пока не откроются комментарии.
@@ -145,9 +163,7 @@ def main_script_start() -> None:
 
     for vk_login, vk_password in config.context["vk_users"]:
         new_session = using_vk_api.create_session(vk_login, vk_password, config.APP_ID)
-        # todo: процесс создания аутентификации сессии может проходить очень долго, надо как то параллелить этот процесс
         try:
-            # todo: обработать капчу(как ошибки, выдача пользователю, капча хэндлером) и ошибки
             # Catching vk_api.exceptions.AuthError: Unknown error (AUTH; no sid).
             try:
                 new_session.auth()
@@ -155,7 +171,11 @@ def main_script_start() -> None:
                 new_session.auth(token_only=True)
 
         except vk_api.exceptions.Captcha as captcha_ex:
-            captcha_handler(captcha_ex)
+            while True:
+                if try_to_handle_captcha(captcha_ex):
+                    break
+                else:
+                    continue
         sessions.append(new_session)
     config.sessions = sessions
 
@@ -170,7 +190,11 @@ def main_script_start() -> None:
     try:
         using_vk_api.start_with_delay(cur_session, cur_photos, config.context[config.CONTEXT_FIELD_START_TIME])
     except vk_api.exceptions.Captcha as captcha_ex:
-        captcha_handler(captcha_ex)
+        while True:
+            if try_to_handle_captcha(captcha_ex):
+                break
+            else:
+                continue
 
 
 def main_script_stop():
