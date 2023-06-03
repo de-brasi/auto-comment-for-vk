@@ -1,8 +1,9 @@
-# TODO: 1) Необходимо добавить обработку кейса когда нет зареганных пользователей, а так же добавить регистрацию
-#       2) После нажатия кнопки Старт менять ее название на Стоп (с соответствующим поведением)
+# TODO: 1) Необходимо добавить обработку кейса когда нет зареганных пользователей, а так же добавить форму регистрации
+#       2) Форма для обработки капчи (с картинкой)
 from __future__ import annotations
 
 import pathlib
+import requests
 
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import QThread, QTime
@@ -12,12 +13,43 @@ import config
 from interfaces.main_standalone_window import Ui_MainWindow
 from interfaces.vk_login_window import Ui_RegistrationWindow
 from interfaces.popup_result_window import Ui_MessageWindow
+from interfaces.captha_handler import Ui_CapthaHandler
 
 import utils.core_api as core_api
 
 # this fix problem with relative path after importing module
 current_file_dir_path = str(pathlib.Path(__file__).parent)
 current_file_dir_parent_path = str(pathlib.Path(__file__).parent.parent)
+
+
+class CaptchaHandlerWindow(QtWidgets.QWidget):
+    def __init__(self):
+        super(CaptchaHandlerWindow, self).__init__()
+        self.ui = Ui_CapthaHandler()
+        self.ui.setupUi(self)
+        self.setWindowTitle('Проверка пользователя')
+        self.ui.get_input_button.clicked.connect(self.get_captcha_from_entry_field)
+
+        url = "https://api.vk.com/captcha.php?sid=547973203351&s=1"
+        data = requests.get(url).content
+        image = QtGui.QImage()
+        image.loadFromData(data)
+        pixmap = QtGui.QPixmap(image)
+
+        # todo: scale picture
+        pixmap.scaled(2, 2, QtCore.Qt.KeepAspectRatio)
+
+        self.ui.image_field.setPixmap(pixmap)
+
+        # todo: delete
+        self.show()
+
+    def get_captcha_from_entry_field(self) -> str:
+        captcha_code = self.ui.captcha_input.text()
+        self.ui.captcha_input.clear()
+
+        if captcha_code:
+            pass
 
 
 class MessageWindow(QtWidgets.QWidget):
@@ -126,6 +158,7 @@ class Interface(QtWidgets.QMainWindow):
         # Child windows
         self.child_vk_login_window = VkRegistrationInterface(self)
         self.child_result_window = MessageWindow()
+        self.child_captcha_handler = CaptchaHandlerWindow()
         ############################################################
 
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
@@ -134,6 +167,8 @@ class Interface(QtWidgets.QMainWindow):
             self.child_vk_login_window.close()
         if self.child_result_window:
             self.child_result_window.close()
+        if self.child_captcha_handler:
+            self.child_captcha_handler.close()
 
     def init_ui(self):
         self.setWindowTitle('Авто Коммент')
@@ -235,10 +270,6 @@ class Interface(QtWidgets.QMainWindow):
             showed_message += message
 
             # resize width for message
-            current_height = self.child_result_window.minimumSize().height()
-            required_width = self.child_result_window.layout().sizeHint().width()
-
-            # self.child_result_window.resize(required_width, current_height)
             self.child_result_window.resize(self.child_result_window.layout().sizeHint())
 
         print(self.child_result_window.ui.message.text())
