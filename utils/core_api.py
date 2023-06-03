@@ -171,11 +171,8 @@ def main_script_start() -> None:
                 new_session.auth(token_only=True)
 
         except vk_api.exceptions.Captcha as captcha_ex:
-            while True:
-                if try_to_handle_captcha(captcha_ex):
-                    break
-                else:
-                    continue
+            handle_captcha_with_flood_control(captcha_ex)
+
         sessions.append(new_session)
     config.sessions = sessions
 
@@ -190,11 +187,7 @@ def main_script_start() -> None:
     try:
         using_vk_api.start_with_delay(cur_session, cur_photos, config.context[config.CONTEXT_FIELD_START_TIME])
     except vk_api.exceptions.Captcha as captcha_ex:
-        while True:
-            if try_to_handle_captcha(captcha_ex):
-                break
-            else:
-                continue
+        handle_captcha_with_flood_control(captcha_ex)
 
 
 def main_script_stop():
