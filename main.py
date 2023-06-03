@@ -4,7 +4,7 @@ import click
 
 
 @click.command()
-@click.option('--mode', '--m', default='graphic',
+@click.option('--mode', '-m', default='graphic',
               type=click.Choice(['graphic', 'console']), help='Application launch mode.')
 # todo: добавить запуск в консоли без интерактивного взаимодействия,
 #  а передать время, фотки и сразу встать на выполнение
