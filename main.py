@@ -74,6 +74,7 @@ def init_command_line_interface():
         elif cur_command == "main_script_start":
             core_api.main_script_start()
             print("Executed!")
+
         elif cur_command == "main_script_stop":
             pass
 
