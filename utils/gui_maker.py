@@ -29,6 +29,8 @@ current_file_dir_parent_path = str(pathlib.Path(__file__).parent.parent)
 
 
 class CaptchaHandlerWindow(QtWidgets.QWidget):
+    signal_captcha_handling_interrupt = pyqtSignal()
+
     def __init__(self, thread_with_core_script: RunningThread):
         super(CaptchaHandlerWindow, self).__init__()
 
@@ -43,6 +45,9 @@ class CaptchaHandlerWindow(QtWidgets.QWidget):
         self.ui.setupUi(self)
         self.setWindowTitle('Проверка пользователя')
         self.ui.get_input_button.clicked.connect(self.take_captcha_from_entry_field)
+
+    def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
+        self.signal_captcha_handling_interrupt.emit()
 
     def take_captcha_from_entry_field(self):
         captcha_code = self.ui.captcha_input.text()
@@ -70,6 +75,13 @@ class CaptchaHandlerWindow(QtWidgets.QWidget):
 
         if self.isHidden():
             self.show()
+        else:
+            # todo: сделать предыдущее решение капчи дефолтным и посдсветить красным
+            previous_captcha_solution = self.ui.captcha_input.text()
+            self.ui.captcha_input.clear()
+
+            self.ui.captcha_input.setPlaceholderText(previous_captcha_solution)
+            self.ui.captcha_input.setStyleSheet("QLineEdit[placeholderText] { color: red; }")
 
 
 class MessageWindow(QtWidgets.QWidget):
@@ -182,7 +194,9 @@ class Interface(QtWidgets.QMainWindow):
         ############################################################
 
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
-        # Close relative windows
+        self.close_relative_windows()
+
+    def close_relative_windows(self):
         if self.child_vk_login_window:
             self.child_vk_login_window.close()
         if self.child_result_window:
@@ -214,21 +228,25 @@ class Interface(QtWidgets.QMainWindow):
         self.ui.time_entry.setTime(QTime(*core_api.time_get_stored()))          # set last used time
 
     def run_main_script_and_set_button_to_stop_condition(self):
+        self.close_relative_windows()
+
         del self.main_script_runner
         self.main_script_runner = RunningThread(self)
 
         # Actualization of RunningThread object in CaptchaHandlerWindow obj
         del self.child_captcha_handler
-        self.child_captcha_handler = CaptchaHandlerWindow(self.main_script_runner)
-
-        self.main_script_runner.setTerminationEnabled(True)
-        self.main_script_runner.start()
+        self._restore_captcha_handler_window(self.main_script_runner)
 
         self.ui.script_management_button.setText('Стоп')
         self.ui.script_management_button.clicked.disconnect(self.run_main_script_and_set_button_to_stop_condition)
         self.ui.script_management_button.clicked.connect(self.stop_main_script_and_set_button_to_start_condition)
 
+        self.main_script_runner.setTerminationEnabled(True)
+        self.main_script_runner.start()
+
     def stop_main_script_and_set_button_to_start_condition(self):
+        self.close_relative_windows()
+
         self.main_script_runner.stop()
         self.ui.script_management_button.setText('Старт')
         self.ui.script_management_button.clicked.disconnect(self.stop_main_script_and_set_button_to_start_condition)
@@ -240,6 +258,9 @@ class Interface(QtWidgets.QMainWindow):
         self.ui.script_management_button.setText('Старт')
         self.ui.script_management_button.clicked.disconnect(self.stop_main_script_and_set_button_to_start_condition)
         self.ui.script_management_button.clicked.connect(self.run_main_script_and_set_button_to_stop_condition)
+
+    def handle_captcha_interrupt(self):
+        self.stop_main_script_and_set_button_to_start_condition()
 
     def get_link_to_add(self):
         entry_link_value = self.ui.add_link_entry.text()
@@ -285,7 +306,6 @@ class Interface(QtWidgets.QMainWindow):
         # todo: пробовать делать (и запоминать сессии), брать имя-фамилию и выводить ее
         self.ui.accounts_list_display.addItem(mail)
 
-
     def _show_result_window(self, success: bool, message: str = None):
         if success:
             showed_message = "Успешно!"
@@ -303,6 +323,16 @@ class Interface(QtWidgets.QMainWindow):
         print(self.child_result_window.ui.message.text())
 
         self.child_result_window.show()
+
+    def _restore_captcha_handler_window(self, thread: RunningThread):
+        """
+        Since a new thread is created when the main script is stopped or restarted,
+        it is necessary to create a new CaptchaHandlerWindow object,
+        which is connected by the signal mechanism on the one hand with the new thread,
+        and on the other hand with the GUI window.
+        """
+        self.child_captcha_handler = CaptchaHandlerWindow(thread)
+        self.child_captcha_handler.signal_captcha_handling_interrupt.connect(self.handle_captcha_interrupt)
 
 
 class RunningThread(QThread):
@@ -345,29 +375,16 @@ class RunningThread(QThread):
             try:
                 while True:
                     thread_object.mutex.lock()
-                    print("Жду капчу")
                     thread_object.captcha_waiter.wait(thread_object.mutex)
-                    print("Капча получена")
                     handling_result = check_current_captcha_value_correctness(captcha_exception)
                     if handling_result is True:
-                        print("Капча корректна")
-                        # Получено правильное значение капчи
                         thread_object.success_captcha_got.emit()
                         thread_object.mutex.unlock()
                         break
                     else:
                         captcha_exception = handling_result
-
-                        # todo: emit new image
                         thread_object.need_captcha_from_user.emit(captcha_exception.get_url())
-
-
-
-                        # todo: подсветить текст красным если открыто окно капчи
-                        #  и получен сигнал thread_object.need_captcha_from_user.emit()
-                        print("Капча не корректна")
                         thread_object.mutex.unlock()
-                        # todo: использовать WaitCondition
             except ApiError:
                 # vk_api.exceptions.ApiError: [9] Flood control
                 # https://vk.com/faq11583
