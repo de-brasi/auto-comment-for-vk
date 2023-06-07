@@ -6,10 +6,16 @@ import pathlib
 import requests
 
 from PyQt5 import QtWidgets
-from PyQt5.QtCore import QThread, QTime, pyqtSignal, pyqtSlot
+from PyQt5.QtCore import QThread, QTime, pyqtSignal, QMutex, QWaitCondition
 from PyQt5 import QtGui, QtCore
 
 import config
+
+from vk_api.exceptions import Captcha
+from vk_api.exceptions import ApiError
+
+from typing import Callable
+
 from interfaces.main_standalone_window import Ui_MainWindow
 from interfaces.vk_login_window import Ui_RegistrationWindow
 from interfaces.popup_result_window import Ui_MessageWindow
@@ -23,33 +29,45 @@ current_file_dir_parent_path = str(pathlib.Path(__file__).parent.parent)
 
 
 class CaptchaHandlerWindow(QtWidgets.QWidget):
-    def __init__(self):
+    def __init__(self, thread_with_core_script: RunningThread):
         super(CaptchaHandlerWindow, self).__init__()
+
+        self.thread_with_script = thread_with_core_script
+
+        # Connect with signals
+        self.thread_with_script.need_captcha_from_user.connect(self.show_captcha_handler)
+        self.thread_with_script.success_captcha_got.connect(self.close)
+
+        # Init ui
         self.ui = Ui_CapthaHandler()
         self.ui.setupUi(self)
         self.setWindowTitle('Проверка пользователя')
-        self.ui.get_input_button.clicked.connect(self.get_captcha_from_entry_field)
+        self.ui.get_input_button.clicked.connect(self.take_captcha_from_entry_field)
 
-        url = "https://api.vk.com/captcha.php?sid=547973203351&s=1"
-        data = requests.get(url).content
+    def take_captcha_from_entry_field(self):
+        captcha_code = self.ui.captcha_input.text()
+
+        if not captcha_code:
+            pass
+        else:
+            self.set_captcha_value_to_thread_with_mutex(captcha_code)
+
+    def set_captcha_value_to_thread_with_mutex(self, value: str):
+        self.thread_with_script.mutex.lock()
+        self.thread_with_script.received_captcha_value = value
+        self.thread_with_script.mutex.unlock()
+        self.thread_with_script.captcha_waiter.wakeAll()
+
+    def show_captcha_handler(self, captcha_url: str):
+        data = requests.get(captcha_url).content
         image = QtGui.QImage()
         image.loadFromData(data)
         pixmap = QtGui.QPixmap(image)
-
         # todo: scale picture
         pixmap.scaled(2, 2, QtCore.Qt.KeepAspectRatio)
 
         self.ui.image_field.setPixmap(pixmap)
-
-        # todo: delete
         self.show()
-
-    def get_captcha_from_entry_field(self) -> str:
-        captcha_code = self.ui.captcha_input.text()
-        self.ui.captcha_input.clear()
-
-        if captcha_code:
-            pass
 
 
 class MessageWindow(QtWidgets.QWidget):
@@ -149,7 +167,7 @@ class VkRegistrationInterface(QtWidgets.QMainWindow):
 class Interface(QtWidgets.QMainWindow):
     def __init__(self):
         super(Interface, self).__init__()
-        self.main_script_runner = RunnerWorker(self)
+        self.main_script_runner = RunningThread(self)
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.init_ui()
@@ -158,10 +176,7 @@ class Interface(QtWidgets.QMainWindow):
         # Child windows
         self.child_vk_login_window = VkRegistrationInterface(self)
         self.child_result_window = MessageWindow()
-        self.child_captcha_handler = CaptchaHandlerWindow()
-
-        # Slots and signals connection
-        self.
+        self.child_captcha_handler = CaptchaHandlerWindow(self.main_script_runner)
         ############################################################
 
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
@@ -198,7 +213,12 @@ class Interface(QtWidgets.QMainWindow):
 
     def run_main_script_and_set_button_to_stop_condition(self):
         del self.main_script_runner
-        self.main_script_runner = RunnerWorker(self)
+        self.main_script_runner = RunningThread(self)
+
+        # Actualization of RunningThread object in CaptchaHandlerWindow obj
+        del self.child_captcha_handler
+        self.child_captcha_handler = CaptchaHandlerWindow(self.main_script_runner)
+
         self.main_script_runner.setTerminationEnabled(True)
         self.main_script_runner.start()
 
@@ -283,41 +303,69 @@ class Interface(QtWidgets.QMainWindow):
         self.child_result_window.show()
 
 
-class RunnerWorker(QThread):
-    def __init__(self, calling_window: Interface):
+class RunningThread(QThread):
+    success_captcha_got = pyqtSignal()
+    need_captcha_from_user = pyqtSignal(str)
+
+    def __init__(self, parent_window: Interface):
         QThread.__init__(self)
-
-        self.calling_window = calling_window
-
-        self.need_captcha = pyqtSignal()
-        self.captcha_success = pyqtSignal()
+        self.parent_window = parent_window
+        self.mutex = QMutex()
+        self.captcha_waiter = QWaitCondition()
+        self.received_captcha_value = ""
 
     def run(self):
         print('Start')
-        core_api.main_script_start()
+        core_api.main_script_start(captcha_handler=self.make_captcha_handler_function())
         print('Done')
-        self.calling_window.handle_script_finishing()
+        # Использовать сигналы вместо взаимных ссылок на объекты
+        self.parent_window.handle_script_finishing()
 
     def stop(self):
         print('Stopped!')
         self.terminate()
 
-    def _handle_captcha(self, captcha):
-        # Эта функция будет выполняться внутри параллельного QThread,
-        # поэтому может быть приостановлена бесконечным циклом
-        self.calling_window.child_captcha_handler.show()
-        while True:
-            signal <- (connect from captcha handler window)
-            while not signal:
-                # todo: wait signal from self.child_captcha_handler
-                wait
+    def make_captcha_handler_function(self) -> Callable:
+        # TODO: написать что-то вроде документации к этой функции,
+        #  которая поясняет как работает связь с другим окном
+        #  для получения капчи (через разделяемую память)
+        thread_object = self
+
+        def handling_captcha_with_flood_control_function(captcha_exception: Captcha):
+            def check_current_captcha_value_correctness(captcha_obj: Captcha) -> bool:
+                try:
+                    captcha_obj.try_again(thread_object.received_captcha_value)
+                    return True
+                except Captcha:
+                    return False
+
+            thread_object.need_captcha_from_user.emit(captcha_exception.get_url())
             try:
-                captcha.try_again(signal.value)
-                break
-            except vk_api.exceptions.Captcha:
-                continue
-            except vk_api.exceptions.ApiError:
-                # todo: message to wait for next try
-                continue
-        self.calling_window.child_captcha_handler.close()
+                while True:
+                    thread_object.mutex.lock()
+                    print("Жду капчу")
+                    thread_object.captcha_waiter.wait(thread_object.mutex)
+                    print("Капча получена")
+                    if check_current_captcha_value_correctness(captcha_exception):
+                        print("Капча корректна")
+                        # Получено правильное значение капчи
+                        thread_object.success_captcha_got.emit()
+                        thread_object.mutex.unlock()
+                        break
+                    else:
+                        # todo: подсветить текст красным если открыто окно капчи
+                        #  и получен сигнал thread_object.need_captcha_from_user.emit()
+                        print("Капча не корректна")
+                        thread_object.mutex.unlock()
+                        # todo: использовать WaitCondition
+            except ApiError:
+                # vk_api.exceptions.ApiError: [9] Flood control
+                # https://vk.com/faq11583
+
+                # todo: вывести это пользователю, как то ожидать, а что ожидать????
+                print("Too many requests. Try later")
+
+            thread_object.parent_window.child_captcha_handler.close()
+
+        return handling_captcha_with_flood_control_function
 
