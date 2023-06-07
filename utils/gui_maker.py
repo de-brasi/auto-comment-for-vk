@@ -81,13 +81,6 @@ class CaptchaHandlerWindow(QtWidgets.QWidget):
 
         if self.isHidden():
             self.show()
-        else:
-            # todo: сделать предыдущее решение капчи дефолтным и посдсветить красным
-            previous_captcha_solution = self.ui.captcha_input.text()
-            self.ui.captcha_input.clear()
-
-            self.ui.captcha_input.setPlaceholderText(previous_captcha_solution)
-            self.ui.captcha_input.setStyleSheet("QLineEdit[placeholderText] { color: red; }")
 
 
 class MessageWindow(QtWidgets.QWidget):
@@ -262,7 +255,7 @@ class Interface(QtWidgets.QMainWindow):
         self.close_relative_windows()
 
     def handle_script_finishing(self):
-        self._show_result_window(success=True)
+        self.show_result_window(success=True)
 
         self.ui.script_management_button.setText('Старт')
         self.ui.script_management_button.clicked.disconnect(self.stop_main_script_and_set_button_to_start_condition)
@@ -298,7 +291,7 @@ class Interface(QtWidgets.QMainWindow):
             if not core_api.photo_check_if_stored(entry_link_value):
                 core_api.photo_add(entry_link_value)
             else:
-                self._show_result_window(success=False, message="Такое фото уже сохранено")
+                self.show_result_window(success=False, message="Такое фото уже сохранено")
 
     def get_link_to_delete(self):
         entry_link_value = self.ui.delete_link_entry.text()
@@ -308,7 +301,7 @@ class Interface(QtWidgets.QMainWindow):
             if core_api.photo_check_if_stored(entry_link_value):
                 core_api.photo_delete(entry_link_value)
             else:
-                self._show_result_window(success=False, message="Такое фото не сохранено")
+                self.show_result_window(success=False, message="Такое фото не сохранено")
 
     def get_time(self):
         hour_value = self.ui.time_entry.time().hour()
@@ -334,7 +327,7 @@ class Interface(QtWidgets.QMainWindow):
         # todo: пробовать делать (и запоминать сессии), брать имя-фамилию и выводить ее
         self.ui.accounts_list_display.addItem(mail)
 
-    def _show_result_window(self, success: bool, message: str = None):
+    def show_result_window(self, success: bool, message: str = None):
         if success:
             showed_message = "Успешно!"
         else:
@@ -416,7 +409,7 @@ class RunningThread(QThread):
                 # vk_api.exceptions.ApiError: [9] Flood control
                 # https://vk.com/faq11583
 
-                # todo: вывести это пользователю, как то ожидать, а что ожидать????
+                self.parent_window.show_result_window(success=False, message="Слишком много попыток. Попробуйте позже")
                 print("Too many requests. Try later")
 
             thread_object.parent_window.child_captcha_handler.close()
