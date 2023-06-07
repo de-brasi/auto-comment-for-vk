@@ -59,15 +59,17 @@ class CaptchaHandlerWindow(QtWidgets.QWidget):
         self.thread_with_script.captcha_waiter.wakeAll()
 
     def show_captcha_handler(self, captcha_url: str):
+        # Update image
         data = requests.get(captcha_url).content
         image = QtGui.QImage()
         image.loadFromData(data)
         pixmap = QtGui.QPixmap(image)
         # todo: scale picture
         pixmap.scaled(2, 2, QtCore.Qt.KeepAspectRatio)
-
         self.ui.image_field.setPixmap(pixmap)
-        self.show()
+
+        if self.isHidden():
+            self.show()
 
 
 class MessageWindow(QtWidgets.QWidget):
@@ -332,12 +334,12 @@ class RunningThread(QThread):
         thread_object = self
 
         def handling_captcha_with_flood_control_function(captcha_exception: Captcha):
-            def check_current_captcha_value_correctness(captcha_obj: Captcha) -> bool:
+            def check_current_captcha_value_correctness(captcha_obj: Captcha) -> bool | Captcha:
                 try:
                     captcha_obj.try_again(thread_object.received_captcha_value)
                     return True
-                except Captcha:
-                    return False
+                except Captcha as new_captcha_exception:
+                    return new_captcha_exception
 
             thread_object.need_captcha_from_user.emit(captcha_exception.get_url())
             try:
@@ -346,13 +348,21 @@ class RunningThread(QThread):
                     print("Жду капчу")
                     thread_object.captcha_waiter.wait(thread_object.mutex)
                     print("Капча получена")
-                    if check_current_captcha_value_correctness(captcha_exception):
+                    handling_result = check_current_captcha_value_correctness(captcha_exception)
+                    if handling_result is True:
                         print("Капча корректна")
                         # Получено правильное значение капчи
                         thread_object.success_captcha_got.emit()
                         thread_object.mutex.unlock()
                         break
                     else:
+                        captcha_exception = handling_result
+
+                        # todo: emit new image
+                        thread_object.need_captcha_from_user.emit(captcha_exception.get_url())
+
+
+
                         # todo: подсветить текст красным если открыто окно капчи
                         #  и получен сигнал thread_object.need_captcha_from_user.emit()
                         print("Капча не корректна")
