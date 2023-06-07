@@ -94,3 +94,36 @@ def start_with_delay(session: vk_api.VkApi, queries_arguments: List[str], time_t
             for photo_info in parsed_photo:
                 create_comment(photo_info.owner, photo_info.photo, message)
             break
+
+
+def console_mode_captcha_handler(captcha):
+    """
+    При возникновении капчи вызывается эта функция и ей передается объект
+    капчи. Через метод get_url можно получить ссылку на изображение.
+    Через метод try_again можно попытаться отправить запрос с кодом капчи
+    """
+
+    key = input("Enter captcha code {0}: ".format(captcha.get_url())).strip()
+
+    # Пробуем снова отправить запрос с капчей
+    return captcha.try_again(key)
+
+
+def console_mode_try_to_handle_captcha(captcha: vk_api.exceptions.Captcha):
+    try:
+        console_mode_captcha_handler(captcha)
+        return True
+    except vk_api.exceptions.Captcha:
+        return False
+
+
+def console_mode_handle_captcha_with_flood_control(captcha: vk_api.exceptions.Captcha):
+    try:
+        while True:
+            if console_mode_try_to_handle_captcha(captcha):
+                break
+            else:
+                continue
+    except vk_api.exceptions.ApiError:
+        # vk_api.exceptions.ApiError: [9] Flood control
+        print("Too many requests. Try later")
