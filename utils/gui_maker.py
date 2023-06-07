@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import pathlib
+import time
+
 import requests
 
 from PyQt5 import QtWidgets
@@ -34,17 +36,21 @@ class CaptchaHandlerWindow(QtWidgets.QWidget):
     def __init__(self, thread_with_core_script: RunningThread):
         super(CaptchaHandlerWindow, self).__init__()
 
-        self.thread_with_script = thread_with_core_script
-
-        # Connect with signals
-        self.thread_with_script.need_captcha_from_user.connect(self.show_captcha_handler)
-        self.thread_with_script.success_captcha_got.connect(self.close)
+        self.thread_with_script = None
+        self.set_worker_thread(thread_with_core_script)
 
         # Init ui
         self.ui = Ui_CapthaHandler()
         self.ui.setupUi(self)
         self.setWindowTitle('Проверка пользователя')
         self.ui.get_input_button.clicked.connect(self.take_captcha_from_entry_field)
+
+    def set_worker_thread(self, worker_thread: RunningThread):
+        self.thread_with_script = worker_thread
+
+        # Connect with signals
+        self.thread_with_script.need_captcha_from_user.connect(self.show_captcha_handler)
+        self.thread_with_script.success_captcha_got.connect(self.close)
 
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
         self.signal_captcha_handling_interrupt.emit()
@@ -193,15 +199,17 @@ class Interface(QtWidgets.QMainWindow):
         self.child_captcha_handler = CaptchaHandlerWindow(self.main_script_runner)
         ############################################################
 
+        self.child_captcha_handler.signal_captcha_handling_interrupt.connect(self.handle_captcha_interrupt)
+
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
         self.close_relative_windows()
 
     def close_relative_windows(self):
-        if self.child_vk_login_window:
+        if self.child_vk_login_window.isVisible():
             self.child_vk_login_window.close()
-        if self.child_result_window:
+        if self.child_result_window.isVisible():
             self.child_result_window.close()
-        if self.child_captcha_handler:
+        if self.child_captcha_handler.isVisible():
             self.child_captcha_handler.close()
 
     def init_ui(self):
@@ -228,13 +236,10 @@ class Interface(QtWidgets.QMainWindow):
         self.ui.time_entry.setTime(QTime(*core_api.time_get_stored()))          # set last used time
 
     def run_main_script_and_set_button_to_stop_condition(self):
-        self.close_relative_windows()
-
         del self.main_script_runner
         self.main_script_runner = RunningThread(self)
 
         # Actualization of RunningThread object in CaptchaHandlerWindow obj
-        del self.child_captcha_handler
         self._restore_captcha_handler_window(self.main_script_runner)
 
         self.ui.script_management_button.setText('Стоп')
@@ -244,13 +249,17 @@ class Interface(QtWidgets.QMainWindow):
         self.main_script_runner.setTerminationEnabled(True)
         self.main_script_runner.start()
 
-    def stop_main_script_and_set_button_to_start_condition(self):
+        # Order can be important (double connect or disconnect functions)
         self.close_relative_windows()
 
+    def stop_main_script_and_set_button_to_start_condition(self):
         self.main_script_runner.stop()
         self.ui.script_management_button.setText('Старт')
         self.ui.script_management_button.clicked.disconnect(self.stop_main_script_and_set_button_to_start_condition)
         self.ui.script_management_button.clicked.connect(self.run_main_script_and_set_button_to_stop_condition)
+
+        # Order can be important (double connect or disconnect functions)
+        self.close_relative_windows()
 
     def handle_script_finishing(self):
         self._show_result_window(success=True)
@@ -260,7 +269,26 @@ class Interface(QtWidgets.QMainWindow):
         self.ui.script_management_button.clicked.connect(self.run_main_script_and_set_button_to_stop_condition)
 
     def handle_captcha_interrupt(self):
-        self.stop_main_script_and_set_button_to_start_condition()
+        self.main_script_runner.stop()
+        self.ui.script_management_button.setText('Старт')
+
+        try:
+            self.ui.script_management_button.clicked.disconnect(self.stop_main_script_and_set_button_to_start_condition)
+        except TypeError:
+            # If self.stop_main_script_and_set_button_to_start_condition was
+            #   already disconnect by stop_main_script_and_set_button_to_start_condition.
+            # This is implemented when the captcha handler window was not closed by the user,
+            #   but when the closeEvent method was called when all active windows were closed
+            #   when the Stop button on the main screen was pressed (to stop the script).
+            pass
+
+        try:
+            # Disconnect if it is possible, for avoiding double connecting.
+            self.ui.script_management_button.clicked.disconnect(self.run_main_script_and_set_button_to_stop_condition)
+        except TypeError:
+            pass
+        finally:
+            self.ui.script_management_button.clicked.connect(self.run_main_script_and_set_button_to_stop_condition)
 
     def get_link_to_add(self):
         entry_link_value = self.ui.add_link_entry.text()
@@ -331,8 +359,7 @@ class Interface(QtWidgets.QMainWindow):
         which is connected by the signal mechanism on the one hand with the new thread,
         and on the other hand with the GUI window.
         """
-        self.child_captcha_handler = CaptchaHandlerWindow(thread)
-        self.child_captcha_handler.signal_captcha_handling_interrupt.connect(self.handle_captcha_interrupt)
+        self.child_captcha_handler.set_worker_thread(thread)
 
 
 class RunningThread(QThread):
