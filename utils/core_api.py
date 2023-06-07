@@ -10,6 +10,7 @@
 
 from typing import List
 from typing import Tuple
+from typing import Callable
 import vk_api
 
 import json
@@ -122,37 +123,7 @@ def context_save():
         json.dump(config.context, cached_session)
 
 
-def main_script_start() -> None:
-    def captcha_handler(captcha):
-        """
-        При возникновении капчи вызывается эта функция и ей передается объект
-        капчи. Через метод get_url можно получить ссылку на изображение.
-        Через метод try_again можно попытаться отправить запрос с кодом капчи
-        """
-
-        key = input("Enter captcha code {0}: ".format(captcha.get_url())).strip()
-
-        # Пробуем снова отправить запрос с капчей
-        return captcha.try_again(key)
-
-    def try_to_handle_captcha(captcha: vk_api.exceptions.Captcha):
-        try:
-            captcha_handler(captcha)
-            return True
-        except vk_api.exceptions.Captcha:
-            return False
-
-    def handle_captcha_with_flood_control(captcha: vk_api.exceptions.Captcha):
-        try:
-            while True:
-                if try_to_handle_captcha(captcha):
-                    break
-                else:
-                    continue
-        except vk_api.exceptions.ApiError:
-            # vk_api.exceptions.ApiError: [9] Flood control
-            print("Too many requests. Try later")
-
+def main_script_start(captcha_handler: Callable = using_vk_api.console_mode_handle_captcha_with_flood_control) -> None:
     # Начинает выполнение программы:
     # начинается ожидание нужного времени:
     #   решить, будет какая-то отсрочка или лонгпулы пока не откроются комментарии.
@@ -171,7 +142,7 @@ def main_script_start() -> None:
                 new_session.auth(token_only=True)
 
         except vk_api.exceptions.Captcha as captcha_ex:
-            handle_captcha_with_flood_control(captcha_ex)
+            captcha_handler(captcha_ex)
 
         sessions.append(new_session)
     config.sessions = sessions
@@ -187,7 +158,7 @@ def main_script_start() -> None:
     try:
         using_vk_api.start_with_delay(cur_session, cur_photos, config.context[config.CONTEXT_FIELD_START_TIME])
     except vk_api.exceptions.Captcha as captcha_ex:
-        handle_captcha_with_flood_control(captcha_ex)
+        captcha_handler(captcha_ex)
 
 
 def main_script_stop():
