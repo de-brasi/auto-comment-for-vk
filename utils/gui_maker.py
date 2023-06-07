@@ -6,7 +6,7 @@ import pathlib
 import requests
 
 from PyQt5 import QtWidgets
-from PyQt5.QtCore import QThread, QTime
+from PyQt5.QtCore import QThread, QTime, pyqtSignal, pyqtSlot
 from PyQt5 import QtGui, QtCore
 
 import config
@@ -159,6 +159,9 @@ class Interface(QtWidgets.QMainWindow):
         self.child_vk_login_window = VkRegistrationInterface(self)
         self.child_result_window = MessageWindow()
         self.child_captcha_handler = CaptchaHandlerWindow()
+
+        # Slots and signals connection
+        self.
         ############################################################
 
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
@@ -260,6 +263,7 @@ class Interface(QtWidgets.QMainWindow):
         # todo: пробовать делать (и запоминать сессии), брать имя-фамилию и выводить ее
         self.ui.accounts_list_display.addItem(mail)
 
+
     def _show_result_window(self, success: bool, message: str = None):
         if success:
             showed_message = "Успешно!"
@@ -281,8 +285,12 @@ class Interface(QtWidgets.QMainWindow):
 
 class RunnerWorker(QThread):
     def __init__(self, calling_window: Interface):
-        self.calling_window = calling_window
         QThread.__init__(self)
+
+        self.calling_window = calling_window
+
+        self.need_captcha = pyqtSignal()
+        self.captcha_success = pyqtSignal()
 
     def run(self):
         print('Start')
@@ -293,4 +301,23 @@ class RunnerWorker(QThread):
     def stop(self):
         print('Stopped!')
         self.terminate()
+
+    def _handle_captcha(self, captcha):
+        # Эта функция будет выполняться внутри параллельного QThread,
+        # поэтому может быть приостановлена бесконечным циклом
+        self.calling_window.child_captcha_handler.show()
+        while True:
+            signal <- (connect from captcha handler window)
+            while not signal:
+                # todo: wait signal from self.child_captcha_handler
+                wait
+            try:
+                captcha.try_again(signal.value)
+                break
+            except vk_api.exceptions.Captcha:
+                continue
+            except vk_api.exceptions.ApiError:
+                # todo: message to wait for next try
+                continue
+        self.calling_window.child_captcha_handler.close()
 
