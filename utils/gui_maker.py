@@ -1,9 +1,8 @@
 # TODO: 1) Необходимо добавить обработку кейса когда нет зареганных пользователей, а так же добавить форму регистрации
-#       2) Форма для обработки капчи (с картинкой)
+
 from __future__ import annotations
 
 import pathlib
-import time
 
 import requests
 
@@ -57,6 +56,7 @@ class CaptchaHandlerWindow(QtWidgets.QWidget):
 
     def take_captcha_from_entry_field(self):
         captcha_code = self.ui.captcha_input.text()
+        self.ui.captcha_input.clear()
 
         if not captcha_code:
             pass
